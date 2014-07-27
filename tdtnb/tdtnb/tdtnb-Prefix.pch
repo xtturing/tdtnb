@@ -6,11 +6,21 @@
 
 #import <Availability.h>
 
-#ifndef __IPHONE_3_0
-#warning "This project uses features only available in iOS SDK 3.0 and later."
+#ifndef __IPHONE_5_0
+#warning "This project uses features only available in iOS SDK 5.0 and later."
 #endif
 
 #ifdef __OBJC__
     #import <UIKit/UIKit.h>
     #import <Foundation/Foundation.h>
+    #import "DownloadConstants.h"
 #endif
+#define SINGLETON(classname)                            \
++ (classname *)sharedInstance{                              \
+static dispatch_once_t pred;                            \
+__strong static classname *shared##classname=nil;       \
+dispatch_once(&pred,^(void){                            \
+shared##classname=[[self alloc]init];               \
+});                                                     \
+return shared##classname;                               \
+}
