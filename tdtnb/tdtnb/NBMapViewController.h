@@ -8,6 +8,8 @@
 
 #import <UIKit/UIKit.h>
 
-@interface NBMapViewController : UIViewController
+@interface NBMapViewController : UIViewController<UITabBarDelegate>
+
+@property (nonatomic, strong) IBOutlet UITabBar *bar;
 
 @end

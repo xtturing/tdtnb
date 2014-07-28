@@ -7,9 +7,13 @@
 //
 
 #import <UIKit/UIKit.h>
+#import "NBMapViewController.h"
 
 @interface NBAppDelegate : UIResponder <UIApplicationDelegate>
 
 @property (strong, nonatomic) UIWindow *window;
+@property (strong, nonatomic) UIImageView *imageView;
+@property (strong, nonatomic) NBMapViewController *mapViewController;
+@property (strong, nonatomic) UINavigationController *navController;  
 
 @end

@@ -14,6 +14,7 @@
     #import <UIKit/UIKit.h>
     #import <Foundation/Foundation.h>
     #import "DownloadConstants.h"
+#import <ArcGIS/ArcGIS.h>
 #endif
 #define SINGLETON(classname)                            \
 + (classname *)sharedInstance{                              \
