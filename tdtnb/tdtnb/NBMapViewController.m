@@ -12,7 +12,7 @@
 #import "NBFavoritesViewController.h"
 #import "NBToolView.h"
 
-@interface NBMapViewController ()
+@interface NBMapViewController ()<toolDelegate>
 
 @property(nonatomic,strong) NBNearSearchViewController *nearSearchViewController;
 @property(nonatomic,strong) NBLineServiceViewController *lineServiceViewController;
@@ -50,10 +50,10 @@
     [self.navigationController setNavigationBarHidden:YES];
 }
 
-#pragma  mark - 
+#pragma  mark -  Action
 
 - (void)tabBar:(UITabBar *)tabBar didSelectItem:(UITabBarItem *)item{
-    
+    self.toolView.hidden = YES;
     switch (item.tag) {
         case 1001:
         {
@@ -75,6 +75,7 @@
             break;
         case 1004:
         {
+            self.toolView.hidden = NO;
             [self.view addSubview:self.toolView];
         }
             break;
@@ -106,8 +107,57 @@
 }
 - (NBToolView *)toolView{
     if(!_toolView){
-        _toolView = [[NBToolView alloc] init];
+        _toolView = [[NBToolView alloc] initWithFrame:CGRectMake(0, CGRectGetHeight(self.view.frame)-49-70, CGRectGetWidth(self.view.frame), 70)];
+        _toolView.delegate = self;
+        
     }
     return _toolView;
+}
+
+#pragma mark - toolDelegate
+- (void)toolButtonClick:(int)buttonTag{
+    switch (buttonTag) {
+        case 100:
+        {
+            
+        }
+            break;
+        case 101:
+        {
+            
+            
+        }
+            break;
+            
+        case 102:
+        {
+            
+            
+        }
+            break;
+            
+        case 103:
+        {
+            
+            
+        }
+            break;
+            
+        case 104:
+        {
+            
+            
+        }
+            break;
+        case 105:
+        {
+            
+            
+        }
+            break;
+            
+        default:
+            break;
+    }
 }
 @end

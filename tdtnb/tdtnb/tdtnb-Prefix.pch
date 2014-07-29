@@ -14,8 +14,11 @@
     #import <UIKit/UIKit.h>
     #import <Foundation/Foundation.h>
     #import "DownloadConstants.h"
+#import <MobileCoreServices/MobileCoreServices.h>
+#import <SystemConfiguration/SystemConfiguration.h>
 #import <ArcGIS/ArcGIS.h>
 #endif
+#define HEIGHT [UIScreen mainScreen].bounds.size.height//获取屏幕高度
 #define SINGLETON(classname)                            \
 + (classname *)sharedInstance{                              \
 static dispatch_once_t pred;                            \

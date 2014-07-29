@@ -8,6 +8,14 @@
 
 #import <UIKit/UIKit.h>
 
+@protocol toolDelegate <NSObject>
+
+- (void)toolButtonClick:(int)buttonTag;
+
+@end
+
 @interface NBToolView : UIView
+
+@property (nonatomic,assign) id<toolDelegate> delegate;
 
 @end
