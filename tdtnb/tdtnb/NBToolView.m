@@ -30,7 +30,7 @@
     self.backgroundColor = [UIColor clearColor];
     
     _labelView= [[UIView alloc] initWithFrame:CGRectMake(0, 0, CGRectGetWidth(self.frame), 25)];
-    [_labelView setBackgroundColor: [UIColor colorWithWhite:0.0f alpha:0.5f]];
+    [_labelView setBackgroundColor: [UIColor colorWithWhite:1.0f alpha:0.0f]];
     _labelView.hidden = YES;
     [self addSubview:_labelView];
     
@@ -40,6 +40,7 @@
     
     _label = [[UILabel alloc] initWithFrame:_labelView.bounds];
     _label.font = [UIFont systemFontOfSize:14];
+    _label.backgroundColor = [UIColor colorWithWhite:0.0f alpha:0.5f];
     _label.textColor = [UIColor whiteColor];
     [_labelView addSubview:_label];
     

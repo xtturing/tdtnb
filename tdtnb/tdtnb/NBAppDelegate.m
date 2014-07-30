@@ -16,28 +16,15 @@
     self.window = [[UIWindow alloc] initWithFrame:[[UIScreen mainScreen] bounds]];
     // Override point for customization after application launch.
     self.window.backgroundColor = [UIColor whiteColor];
-    
-    _imageView = [[UIImageView alloc] initWithFrame:self.window.frame];
-    if(CGRectGetHeight(self.window.frame)>480){
-        _imageView.image = [UIImage imageNamed:@"启动页568"];
-    }else{
-        _imageView.image = [UIImage imageNamed:@"启动页480"];
-    }
-    [self.window addSubview:_imageView];
     [self.window makeKeyAndVisible];
-    [NSTimer scheduledTimerWithTimeInterval:3.0f target:self selector:@selector(timerFireMethod) userInfo:nil repeats:NO];
+    [[UIApplication sharedApplication] setStatusBarHidden:NO withAnimation:UIStatusBarAnimationFade];
+    _mapViewController = [[NBMapViewController alloc] initWithNibName:@"NBMapViewController" bundle:nil];
+    _navController = [[UINavigationController alloc] init];
+    [_navController pushViewController:_mapViewController animated:YES];
+    [self.window setRootViewController:_navController];
     return YES;
 }
 
-- (void)timerFireMethod{
-    [_imageView removeFromSuperview];
-     [[UIApplication sharedApplication] setStatusBarHidden:NO withAnimation:UIStatusBarAnimationFade]; 
-    _mapViewController = [[NBMapViewController alloc] initWithNibName:@"NBMapViewController" bundle:nil];
-    _navController = [[UINavigationController alloc] init];
-    [_navController setNavigationBarHidden:YES];
-    [_navController pushViewController:_mapViewController animated:YES];
-    [self.window setRootViewController:_navController];
-}
 - (void)applicationWillResignActive:(UIApplication *)application
 {
     // Sent when the application is about to move from active to inactive state. This can occur for certain types of temporary interruptions (such as an incoming phone call or SMS message) or when the user quits the application and it begins the transition to the background state.

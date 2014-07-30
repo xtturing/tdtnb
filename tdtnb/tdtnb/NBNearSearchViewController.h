@@ -10,4 +10,6 @@
 
 @interface NBNearSearchViewController : UIViewController
 
+@property (nonatomic,strong) IBOutlet UIView *imageView;
+
 @end
