@@ -26,7 +26,7 @@
     self = [super initWithNibName:nibNameOrNil bundle:nibBundleOrNil];
     if (self) {
         //导航条的搜索条
-        _searchBar = [[UISearchBar alloc]initWithFrame:CGRectMake(0.0f,0.0f,220.0f,44.0f)];
+        _searchBar = [[UISearchBar alloc]initWithFrame:CGRectMake(0.0f,0.0f,180.0f,44.0f)];
         _searchBar.delegate = self;
         [_searchBar setPlaceholder:@"宁波市政府"];
         float version = [[[ UIDevice currentDevice ] systemVersion ] floatValue ];
@@ -75,7 +75,7 @@
             UIButton *btn = [UIButton buttonWithType:UIButtonTypeCustom];
             btn.backgroundColor = [UIColor clearColor];
             UIImage *image = [UIImage imageNamed:[NSString stringWithFormat:@"%d",49+i]];
-            btn.frame = CGRectMake(20+(i%4)*75, 60+(i/4)*75, image.size.width/2, image.size.height/2);
+            btn.frame = CGRectMake(20+(i%4)*75, 60+(i/4)*75, image.size.width/2.5, image.size.height/2.5);
             btn.userInteractionEnabled = YES;
             btn.tag = i;
             [btn setImage:image forState:UIControlStateNormal];
@@ -95,6 +95,9 @@
 - (void)viewDidLoad
 {
     [super viewDidLoad];
+    if ([[[UIDevice currentDevice] systemVersion] floatValue] >= 7) {
+        self.edgesForExtendedLayout = UIRectEdgeNone;
+    }
     // Do any additional setup after loading the view from its nib.
 }
 

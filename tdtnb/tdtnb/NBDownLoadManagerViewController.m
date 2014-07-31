@@ -1,18 +1,18 @@
 //
-//  NBFavoritesViewController.m
+//  NBDownLoadManagerViewController.m
 //  tdtnb
 //
-//  Created by xtturing on 14-7-27.
+//  Created by xtturing on 14-7-31.
 //  Copyright (c) 2014年 xtturing. All rights reserved.
 //
 
-#import "NBFavoritesViewController.h"
+#import "NBDownLoadManagerViewController.h"
 
-@interface NBFavoritesViewController ()
+@interface NBDownLoadManagerViewController ()
 
 @end
 
-@implementation NBFavoritesViewController
+@implementation NBDownLoadManagerViewController
 
 - (id)initWithNibName:(NSString *)nibNameOrNil bundle:(NSBundle *)nibBundleOrNil
 {
@@ -29,7 +29,7 @@
     if ([[[UIDevice currentDevice] systemVersion] floatValue] >= 7) {
         self.edgesForExtendedLayout = UIRectEdgeNone;
     }
-    UISegmentedControl *segment = [[UISegmentedControl alloc] initWithItems:[NSArray arrayWithObjects:@"收藏的点",@"收藏路线", nil]];
+    UISegmentedControl *segment = [[UISegmentedControl alloc] initWithItems:[NSArray arrayWithObjects:@"正在下载",@"已完成", nil]];
     segment.frame = CGRectMake(0, 7, 140, 30);
     segment.segmentedControlStyle = UISegmentedControlStyleBar;
     self.navigationItem.titleView = segment;

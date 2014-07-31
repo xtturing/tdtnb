@@ -11,6 +11,7 @@
 #import "NBLineServiceViewController.h"
 #import "NBFavoritesViewController.h"
 #import "NBToolView.h"
+#import "NBDownLoadViewController.h"
 
 //contants for data layers
 #define kTiledMapServiceURL @"http://server.arcgisonline.com/ArcGIS/rest/services/ESRI_StreetMap_World_2D/MapServer"
@@ -23,6 +24,7 @@
 @property(nonatomic,strong) NBFavoritesViewController *favoritesViewController;
 @property(nonatomic,strong) NBToolView *toolView;
 @property(nonatomic,strong) UISearchBar *searchBar;
+@property(nonatomic,strong) UIButton *hiddenBtn;
 
 @end
 
@@ -33,9 +35,9 @@
     self = [super initWithNibName:nibNameOrNil bundle:nibBundleOrNil];
     if (self) {
         //导航条的搜索条
-        _searchBar = [[UISearchBar alloc]initWithFrame:CGRectMake(0.0f,0.0f,260.0f,44.0f)];
+        _searchBar = [[UISearchBar alloc]initWithFrame:CGRectMake(0.0f,0.0f,240.0f,44.0f)];
         _searchBar.delegate = self;
-        [_searchBar setPlaceholder:@"宁波市政府"];
+        [_searchBar setPlaceholder:@"如:宁波市政府"];
         float version = [[[ UIDevice currentDevice ] systemVersion ] floatValue ];
         if ([ _searchBar respondsToSelector : @selector (barTintColor)]) {
             float  iosversion7_1 = 7.1 ;
@@ -71,11 +73,6 @@
         [voiceBtn setImage:[UIImage imageNamed:@"icon_mircophone2"] forState:UIControlStateNormal];
         UIBarButtonItem *right = [[UIBarButtonItem alloc] initWithCustomView:voiceBtn];
         self.navigationItem.rightBarButtonItem = right;
-        
-        UIButton *hiddenBtn = [[UIButton alloc] initWithFrame:CGRectMake(0, 44, CGRectGetWidth(self.view.frame), CGRectGetHeight(self.view.frame)/2)];
-        [hiddenBtn setBackgroundColor:[UIColor clearColor]];
-        [hiddenBtn addTarget:self action:@selector(hiddenKeyBord) forControlEvents:UIControlEventTouchUpInside];
-        [self.view addSubview:hiddenBtn];
     }
     return self;
 
@@ -84,9 +81,15 @@
 - (void)viewDidLoad
 {
     [super viewDidLoad];
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(keyboardWillShow:) name:UIKeyboardWillShowNotification object:nil];
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(keyboardWillHide:) name:UIKeyboardWillHideNotification object:nil];
+    self.navigationItem.title = @"返回";
+    
+    if ([[[UIDevice currentDevice] systemVersion] floatValue] >= 7) {
+        self.edgesForExtendedLayout = UIRectEdgeNone;
+    }
     self.bar.delegate = self;
     self.mapView.layerDelegate = self;
-	
 	//create an instance of a tiled map service layer
 	AGSTiledMapServiceLayer *tiledLayer = [[AGSTiledMapServiceLayer alloc] initWithURL:[NSURL URLWithString:kTiledMapServiceURL]];
 	
@@ -107,6 +110,7 @@
 	// zoom to the United States
 	AGSEnvelope *env = [AGSEnvelope envelopeWithXmin:xmin ymin:ymin xmax:xmax ymax:ymax spatialReference:sr];
 	[self.mapView zoomToEnvelope:env animated:YES];
+    [self.mapView bringSubviewToFront:self.view];
     // Do any additional setup after loading the view from its nib.
 }
 
@@ -120,10 +124,13 @@
     [super viewWillAppear:animated];
 }
 
+- (void)dealloc{
+    [[NSNotificationCenter defaultCenter] removeObserver:self];
+}
 #pragma  mark -  Action
 
 - (void)tabBar:(UITabBar *)tabBar didSelectItem:(UITabBarItem *)item{
-    self.toolView.hidden = YES;
+    [_toolView removeFromSuperview];
     switch (item.tag) {
         case 1001:
         {
@@ -142,8 +149,7 @@
             break;
         case 1004:
         {
-            self.toolView.hidden = NO;
-            [self.view addSubview:self.toolView];
+            [self.mapView addSubview:self.toolView];
         }
             break;
             
@@ -190,7 +196,8 @@
     switch (buttonTag) {
         case 100:
         {
-            
+            NBDownLoadViewController *down = [[NBDownLoadViewController alloc] initWithNibName:@"NBDownLoadViewController" bundle:nil];
+            [self.navigationController pushViewController:down animated:YES];
         }
             break;
         case 101:
@@ -209,7 +216,7 @@
             
         case 103:
         {
-            
+            [self snopShot];
             
         }
             break;
@@ -237,5 +244,34 @@
     
 	// comment to disable the GPS on start up
 	[self.mapView.gps start];
+}
+
+- (void)snopShot{
+    //支持retina高分的关键
+    if(UIGraphicsBeginImageContextWithOptions != NULL)
+    {
+        UIGraphicsBeginImageContextWithOptions(_mapView.frame.size, NO, 0.0);
+    } else {
+        UIGraphicsBeginImageContext(_mapView.frame.size);
+    }
+    
+    //获取图像
+    [_mapView.layer renderInContext:UIGraphicsGetCurrentContext()];
+    UIImage *image = UIGraphicsGetImageFromCurrentImageContext();
+    UIImageWriteToSavedPhotosAlbum(image, nil, nil, nil);
+    UIGraphicsEndImageContext();
+}
+
+- (void)keyboardWillShow:(NSNotification *)notification {
+    _hiddenBtn = [[UIButton alloc] initWithFrame:CGRectMake(0, 44, CGRectGetWidth(self.view.frame), CGRectGetHeight(self.view.frame))];
+    [_hiddenBtn setBackgroundColor:[UIColor clearColor]];
+    [_hiddenBtn addTarget:self action:@selector(hiddenKeyBord) forControlEvents:UIControlEventTouchUpInside];
+    [self.view addSubview:_hiddenBtn];
+}
+
+
+- (void)keyboardWillHide:(NSNotification *)notification {
+    [_hiddenBtn removeFromSuperview];
+   
 }
 @end

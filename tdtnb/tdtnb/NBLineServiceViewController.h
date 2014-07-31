@@ -10,4 +10,5 @@
 
 @interface NBLineServiceViewController : UIViewController
 
+@property (nonatomic, strong) IBOutlet AGSMapView *mapView;
 @end
