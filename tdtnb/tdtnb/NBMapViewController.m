@@ -263,7 +263,7 @@
 }
 
 - (void)keyboardWillShow:(NSNotification *)notification {
-    _hiddenBtn = [[UIButton alloc] initWithFrame:CGRectMake(0, 44, CGRectGetWidth(self.view.frame), CGRectGetHeight(self.view.frame))];
+    _hiddenBtn = [[UIButton alloc] initWithFrame:CGRectMake(0, 0, CGRectGetWidth(self.view.frame), CGRectGetHeight(self.view.frame))];
     [_hiddenBtn setBackgroundColor:[UIColor clearColor]];
     [_hiddenBtn addTarget:self action:@selector(hiddenKeyBord) forControlEvents:UIControlEventTouchUpInside];
     [self.view addSubview:_hiddenBtn];

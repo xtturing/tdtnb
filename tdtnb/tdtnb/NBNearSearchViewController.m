@@ -17,6 +17,7 @@
 }
 @property (strong , nonatomic) NSMutableArray *itemArray;
 @property(nonatomic,strong) UISearchBar *searchBar;
+@property(nonatomic,strong) UIButton *hiddenBtn;
 @end
 
 @implementation NBNearSearchViewController
@@ -65,11 +66,6 @@
         UIBarButtonItem *right = [[UIBarButtonItem alloc] initWithCustomView:voiceBtn];
         self.navigationItem.rightBarButtonItem = right;
         
-        UIButton *hiddenBtn = [[UIButton alloc] initWithFrame:CGRectMake(0, 44, CGRectGetWidth(self.view.frame), CGRectGetHeight(self.view.frame)/2)];
-        [hiddenBtn setBackgroundColor:[UIColor clearColor]];
-        [hiddenBtn addTarget:self action:@selector(hiddenKeyBord) forControlEvents:UIControlEventTouchUpInside];
-        [self.imageView addSubview:hiddenBtn];
-        
         for (NSInteger i = 0;i<16;i++)
         {
             UIButton *btn = [UIButton buttonWithType:UIButtonTypeCustom];
@@ -79,7 +75,6 @@
             btn.userInteractionEnabled = YES;
             btn.tag = i;
             [btn setImage:image forState:UIControlStateNormal];
-             [btn setImage:image forState:UIControlStateHighlighted];
             [self.imageView addSubview:btn];
             UILongPressGestureRecognizer *longGesture = [[UILongPressGestureRecognizer alloc] initWithTarget:self action:@selector(buttonLongPressed:)];
             [btn addGestureRecognizer:longGesture];
@@ -95,10 +90,15 @@
 - (void)viewDidLoad
 {
     [super viewDidLoad];
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(keyboardWillShow:) name:UIKeyboardWillShowNotification object:nil];
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(keyboardWillHide:) name:UIKeyboardWillHideNotification object:nil];
     if ([[[UIDevice currentDevice] systemVersion] floatValue] >= 7) {
         self.edgesForExtendedLayout = UIRectEdgeNone;
     }
     // Do any additional setup after loading the view from its nib.
+}
+- (void)dealloc{
+    [[NSNotificationCenter defaultCenter] removeObserver:self];
 }
 
 - (void)didReceiveMemoryWarning
@@ -184,6 +184,18 @@
         }
     }
     return -1;
+}
+- (void)keyboardWillShow:(NSNotification *)notification {
+    _hiddenBtn = [[UIButton alloc] initWithFrame:CGRectMake(0, 0, CGRectGetWidth(self.view.frame), CGRectGetHeight(self.view.frame))];
+    [_hiddenBtn setBackgroundColor:[UIColor clearColor]];
+    [_hiddenBtn addTarget:self action:@selector(hiddenKeyBord) forControlEvents:UIControlEventTouchUpInside];
+    [self.view addSubview:_hiddenBtn];
+}
+
+
+- (void)keyboardWillHide:(NSNotification *)notification {
+    [_hiddenBtn removeFromSuperview];
+    
 }
 
 @end
