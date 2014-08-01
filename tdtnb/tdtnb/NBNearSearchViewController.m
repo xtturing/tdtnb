@@ -7,9 +7,10 @@
 //
 
 #import "NBNearSearchViewController.h"
+#import "SpeechToTextModule.h"
 #define Duration 0.2
-@interface NBNearSearchViewController ()<UISearchBarDelegate>
-{
+@interface NBNearSearchViewController ()<UISearchBarDelegate,SpeechToTextModuleDelegate>{
+    UITextField *fakeTextField;
     BOOL contain;
     CGPoint startPoint;
     CGPoint originPoint;
@@ -18,6 +19,7 @@
 @property (strong , nonatomic) NSMutableArray *itemArray;
 @property(nonatomic,strong) UISearchBar *searchBar;
 @property(nonatomic,strong) UIButton *hiddenBtn;
+@property(nonatomic, strong)SpeechToTextModule *speechToTextObj;
 @end
 
 @implementation NBNearSearchViewController
@@ -63,6 +65,7 @@
         UIButton *voiceBtn = [UIButton buttonWithType:UIButtonTypeCustom];
         voiceBtn.frame = CGRectMake(0, 0, 44, 40);
         [voiceBtn setImage:[UIImage imageNamed:@"icon_mircophone2"] forState:UIControlStateNormal];
+        [voiceBtn addTarget:self action:@selector(speechToText) forControlEvents:UIControlEventTouchUpInside];
         UIBarButtonItem *right = [[UIBarButtonItem alloc] initWithCustomView:voiceBtn];
         self.navigationItem.rightBarButtonItem = right;
         
@@ -90,6 +93,11 @@
 - (void)viewDidLoad
 {
     [super viewDidLoad];
+    fakeTextField = [[UITextField alloc] initWithFrame:CGRectZero];
+    [fakeTextField setHidden:NO];
+    [self.view addSubview:fakeTextField];
+    self.speechToTextObj = [[SpeechToTextModule alloc] initWithCustomDisplay:@"SineWaveViewController"];
+    [self.speechToTextObj setDelegate:self];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(keyboardWillShow:) name:UIKeyboardWillShowNotification object:nil];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(keyboardWillHide:) name:UIKeyboardWillHideNotification object:nil];
     if ([[[UIDevice currentDevice] systemVersion] floatValue] >= 7) {
@@ -197,5 +205,37 @@
     [_hiddenBtn removeFromSuperview];
     
 }
+
+#pragma  mark -speechToText
+
+-(void)speechToText{
+    [self.speechToTextObj beginRecording];
+}
+
+#pragma mark - SpeechToTextModule Delegate -
+- (BOOL)didReceiveVoiceResponse:(NSData *)data
+{
+    NSString *responseString = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
+    NSLog(@"responseString: %@",responseString);
+    return YES;
+}
+- (void)showSineWaveView:(SineWaveViewController *)view
+{
+    [fakeTextField setInputView:view.view];
+    [fakeTextField becomeFirstResponder];
+}
+- (void)dismissSineWaveView:(SineWaveViewController *)view cancelled:(BOOL)wasCancelled
+{
+    [fakeTextField resignFirstResponder];
+}
+- (void)showLoadingView
+{
+    NSLog(@"show loadingView");
+}
+- (void)requestFailedWithError:(NSError *)error
+{
+    NSLog(@"error: %@",error);
+}
+
 
 @end

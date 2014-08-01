@@ -12,12 +12,15 @@
 #import "NBFavoritesViewController.h"
 #import "NBToolView.h"
 #import "NBDownLoadViewController.h"
+#import "SpeechToTextModule.h"
 
 //contants for data layers
 #define kTiledMapServiceURL @"http://server.arcgisonline.com/ArcGIS/rest/services/ESRI_StreetMap_World_2D/MapServer"
 #define kDynamicMapServiceURL @"http://sampleserver1.arcgisonline.com/ArcGIS/rest/services/Specialty/ESRI_StateCityHighway_USA/MapServer"
 
-@interface NBMapViewController ()<toolDelegate,UISearchBarDelegate,AGSMapViewLayerDelegate>
+@interface NBMapViewController ()<toolDelegate,UISearchBarDelegate,AGSMapViewLayerDelegate,SpeechToTextModuleDelegate>{
+    UITextField *fakeTextField;
+}
 
 @property(nonatomic,strong) NBNearSearchViewController *nearSearchViewController;
 @property(nonatomic,strong) NBLineServiceViewController *lineServiceViewController;
@@ -25,6 +28,7 @@
 @property(nonatomic,strong) NBToolView *toolView;
 @property(nonatomic,strong) UISearchBar *searchBar;
 @property(nonatomic,strong) UIButton *hiddenBtn;
+@property(nonatomic, strong)SpeechToTextModule *speechToTextObj;
 
 @end
 
@@ -71,6 +75,7 @@
         UIButton *voiceBtn = [UIButton buttonWithType:UIButtonTypeCustom];
         voiceBtn.frame = CGRectMake(0, 0, 44, 40);
         [voiceBtn setImage:[UIImage imageNamed:@"icon_mircophone2"] forState:UIControlStateNormal];
+        [voiceBtn addTarget:self action:@selector(speechToText) forControlEvents:UIControlEventTouchUpInside];
         UIBarButtonItem *right = [[UIBarButtonItem alloc] initWithCustomView:voiceBtn];
         self.navigationItem.rightBarButtonItem = right;
     }
@@ -81,6 +86,12 @@
 - (void)viewDidLoad
 {
     [super viewDidLoad];
+    fakeTextField = [[UITextField alloc] initWithFrame:CGRectZero];
+    [fakeTextField setHidden:NO];
+    [self.view addSubview:fakeTextField];
+    self.speechToTextObj = [[SpeechToTextModule alloc] initWithCustomDisplay:@"SineWaveViewController"];
+    [self.speechToTextObj setDelegate:self];
+    
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(keyboardWillShow:) name:UIKeyboardWillShowNotification object:nil];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(keyboardWillHide:) name:UIKeyboardWillHideNotification object:nil];
     self.navigationItem.title = @"返回";
@@ -274,4 +285,36 @@
     [_hiddenBtn removeFromSuperview];
    
 }
+
+#pragma  mark -speechToText
+
+-(void)speechToText{
+    [self.speechToTextObj beginRecording];
+}
+
+#pragma mark - SpeechToTextModule Delegate -
+- (BOOL)didReceiveVoiceResponse:(NSData *)data
+{
+    NSString *responseString = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
+    NSLog(@"responseString: %@",responseString);
+    return YES;
+}
+- (void)showSineWaveView:(SineWaveViewController *)view
+{
+    [fakeTextField setInputView:view.view];
+    [fakeTextField becomeFirstResponder];
+}
+- (void)dismissSineWaveView:(SineWaveViewController *)view cancelled:(BOOL)wasCancelled
+{
+    [fakeTextField resignFirstResponder];
+}
+- (void)showLoadingView
+{
+    NSLog(@"show loadingView");
+}
+- (void)requestFailedWithError:(NSError *)error
+{
+    NSLog(@"error: %@",error);
+}
+
 @end

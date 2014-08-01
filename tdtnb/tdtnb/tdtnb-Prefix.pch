@@ -28,3 +28,5 @@ shared##classname=[[self alloc]init];               \
 });                                                     \
 return shared##classname;                               \
 }
+
+#define GOOGLE_SPEECH_TO_TEXT_KEY @"AIzaSyCMTeHG3OS3of-AgrPLXLQnv-0r8soH_yg"
