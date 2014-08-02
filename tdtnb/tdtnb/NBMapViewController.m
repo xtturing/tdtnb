@@ -15,8 +15,13 @@
 #import "SpeechToTextModule.h"
 
 //contants for data layers
-#define kTiledMapServiceURL @"http://server.arcgisonline.com/ArcGIS/rest/services/ESRI_StreetMap_World_2D/MapServer"
-#define kDynamicMapServiceURL @"http://sampleserver1.arcgisonline.com/ArcGIS/rest/services/Specialty/ESRI_StateCityHighway_USA/MapServer"
+#define kTiledNB @"http://183.136.157.100:10087/wmts/nbmapall?service=WMTS&request=GetTile&version=1.0.0&layer=0&style=default&tileMatrixSet=nbmap&format=image/png&TILEMATRIX=%d&TILEROW=%d&TILECOL=%d"
+#define KTiledTDT @"http://t0.tianditu.com/vec_c/wmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=vec&STYLE=default&TILEMATRIXSET=c&TILEMATRIX=%d&TILEROW=%d&TILECOL=%d&FORMAT=tiles"
+
+#define kWMSNB  @"http://183.136.157.100:10087/wmts/nbmapall?service=WMTS&request=GetTile&version=1.0.0&layer=0&style=default&tileMatrixSet=nbmap&format=image/png&TILEMATRIX=%d&TILEROW=%d&TILECOL=%d"
+#define kWMSTDT  @"http://t0.tianditu.com/img_c/wmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=img&STYLE=default&TILEMATRIXSET=c&TILEMATRIX=%d&TILEROW=%d&TILECOL=%d&FORMAT=tiles"
+
+#define kDynamicNB @"http://www.nbmap.gov.cn/ArcGIS/rest/services/nbdxx/MapServer"
 
 @interface NBMapViewController ()<toolDelegate,UISearchBarDelegate,AGSMapViewLayerDelegate,SpeechToTextModuleDelegate>{
     UITextField *fakeTextField;
@@ -101,26 +106,8 @@
     }
     self.bar.delegate = self;
     self.mapView.layerDelegate = self;
-	//create an instance of a tiled map service layer
-	AGSTiledMapServiceLayer *tiledLayer = [[AGSTiledMapServiceLayer alloc] initWithURL:[NSURL URLWithString:kTiledMapServiceURL]];
-	
-	//Add it to the map view
-	UIView<AGSLayerView>* lyr = [self.mapView addMapLayer:tiledLayer withName:@"Tiled Layer"];
-    
-	
-	// Setting these two properties lets the map draw while still performing a zoom/pan
-	lyr.drawDuringPanning = YES;
-	lyr.drawDuringZooming = YES;
-    AGSSpatialReference *sr = [AGSSpatialReference spatialReferenceWithWKID:4326];
-	double xmin, ymin, xmax, ymax;
-	xmin = -125.33203125;
-	ymin = -1.58203125;
-	xmax = -69.08203125;
-	ymax = 79.27734375;
-	
-	// zoom to the United States
-	AGSEnvelope *env = [AGSEnvelope envelopeWithXmin:xmin ymin:ymin xmax:xmax ymax:ymax spatialReference:sr];
-	[self.mapView zoomToEnvelope:env animated:YES];
+    _tileMapLayer=[[AGSGoogleMapLayer alloc] initWithGoogleMapSchema:kTiledNB tdPath:KTiledTDT envelope:[AGSEnvelope envelopeWithXmin:119.49 ymin:35.522 xmax:121.032  ymax:37.164  spatialReference:self.mapView.spatialReference] level:@"9"];
+	[self.mapView addMapLayer:_tileMapLayer withName:@"tiledLayer"];
     [self.mapView bringSubviewToFront:self.view];
     // Do any additional setup after loading the view from its nib.
 }
