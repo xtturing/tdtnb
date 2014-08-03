@@ -13,6 +13,7 @@
 #import "NBToolView.h"
 #import "NBDownLoadViewController.h"
 #import "SpeechToTextModule.h"
+#import "Reachability.h"
 
 //contants for data layers
 #define kTiledNB @"http://183.136.157.100:10087/wmts/nbmapall?service=WMTS&request=GetTile&version=1.0.0&layer=0&style=default&tileMatrixSet=nbmap&format=image/png&TILEMATRIX=%d&TILEROW=%d&TILECOL=%d"
@@ -91,6 +92,15 @@
 - (void)viewDidLoad
 {
     [super viewDidLoad];
+    
+    
+    [[NSNotificationCenter defaultCenter] addObserver:self
+                                             selector:@selector(reachabilityChanged:)
+                                                 name:kReachabilityChangedNotification
+                                               object:nil];
+    Reachability *reach = [Reachability reachabilityForInternetConnection];
+    [reach startNotifier];
+    
     fakeTextField = [[UITextField alloc] initWithFrame:CGRectZero];
     [fakeTextField setHidden:NO];
     [self.view addSubview:fakeTextField];
@@ -99,6 +109,8 @@
     
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(keyboardWillShow:) name:UIKeyboardWillShowNotification object:nil];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(keyboardWillHide:) name:UIKeyboardWillHideNotification object:nil];
+   
+    
     self.navigationItem.title = @"返回";
     
     if ([[[UIDevice currentDevice] systemVersion] floatValue] >= 7) {
@@ -258,6 +270,7 @@
     UIImage *image = UIGraphicsGetImageFromCurrentImageContext();
     UIImageWriteToSavedPhotosAlbum(image, nil, nil, nil);
     UIGraphicsEndImageContext();
+    [self showMessageWithAlert:@"图片已保存到本地相册"];
 }
 
 - (void)keyboardWillShow:(NSNotification *)notification {
@@ -302,6 +315,34 @@
 - (void)requestFailedWithError:(NSError *)error
 {
     NSLog(@"error: %@",error);
+}
+
+#pragma mark -reachability
+
+-(void)reachabilityChanged:(NSNotification*)note
+{
+    Reachability * reach = [note object];
+    
+    if([reach isReachable])
+    {
+        if(![reach isReachableViaWiFi]){
+            
+        }else{
+            
+        }
+    }
+    else
+    {
+        [self showMessageWithAlert:@"网络链接断开"];
+    }
+}
+
+#pragma mark - UIAlertView
+
+- (void)showMessageWithAlert:(NSString *)message{
+    UIAlertView *view = [[UIAlertView alloc] initWithTitle:@"天地图宁波" message:message delegate:nil cancelButtonTitle:@"确定" otherButtonTitles:nil, nil];
+    
+    [view show];
 }
 
 @end
