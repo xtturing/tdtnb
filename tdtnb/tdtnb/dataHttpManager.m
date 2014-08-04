@@ -10,6 +10,7 @@
 #import "ASINetworkQueue.h"
 #import "ASIFormDataRequest.h"
 #import "JSON.h"
+#import "NBSearch.h"
 
 static dataHttpManager * instance=nil;
 @implementation dataHttpManager
@@ -81,18 +82,23 @@ static dataHttpManager * instance=nil;
 }
 #pragma mark - Http Operate
 //获取当前区域列表
--(void)getAreaList:(int)type father:(int)father{
-    NSString *t = [NSString stringWithFormat:@"%d",type];
-    NSString *f = [NSString stringWithFormat:@"%d",father];
-    NSMutableDictionary     *params = [NSMutableDictionary dictionaryWithObjectsAndKeys:  t, @"type", f,  @"father",nil];
+-(void)letDoSearchWithQuery:(NSString *)query region:(NSString *)region  searchType:(int)type  pageSize:(int)size pageNum:(int)num{
+    NSString *q = [NSString stringWithFormat:@"%@",query];
+    NSString *r = [NSString stringWithFormat:@"%@",region];
+    NSString *s = [NSString stringWithFormat:@"%d",size];
+    NSString *n = [NSString stringWithFormat:@"%d",num];
+    NSMutableDictionary     *params = [NSMutableDictionary dictionaryWithObjectsAndKeys:  q, @"query", r,  @"region",s,  @"page_size",n,  @"page_num",@"1",  @"scope",@"yMMBb6l8GBeG6GcHjnNuHVMy",  @"ak",@"json", @"output",nil];
     NSString *baseUrl =[NSString  stringWithFormat:@"%@/find/get_area_list.aspx",HTTP_URL];
     NSURL  *url = [self generateURL:baseUrl params:params];
     ASIHTTPRequest *request = [[ASIHTTPRequest alloc] initWithURL:url];
     NSLog(@"url=%@",url);
-    [self setGetUserInfo:request withRequestType:AAGetAreaList];
+    [self setGetUserInfo:request withRequestType:AAGetSearchList];
     [_requestQueue addOperation:request];
 }
-
+//
+-(void)letDoRadiusSearchWithQuery:(NSString *)query location:(NSString *)location  radius:(int)radius scope:(int)scope pageSize:(int)size pageNum:(int)num{
+    
+}
 //继续添加
 
 #pragma mark - Operate queue
@@ -155,12 +161,21 @@ static dataHttpManager * instance=nil;
     
     
     //获取当前区域列表
-    if (requestType == AAGetAreaList) {
-        NSArray *arr= [userInfo objectForKey:@"AreaList"];
+    if (requestType == AAGetSearchList) {
+        NSArray *arr= [userInfo objectForKey:@"results"];
         NSMutableArray  *statuesArr = [[NSMutableArray alloc]initWithCapacity:0];
         
-        if ([_delegate respondsToSelector:@selector(didGetAreaList:)]) {
-            [_delegate didGetAreaList:statuesArr];
+        if ([_delegate respondsToSelector:@selector(didGetSearchList:)]) {
+            [_delegate didGetSearchList:statuesArr];
+        }
+    }
+    //
+    if (requestType == AAGetRadiusList) {
+        NSArray *arr= [userInfo objectForKey:@"results"];
+        NSMutableArray  *statuesArr = [[NSMutableArray alloc]initWithCapacity:0];
+        
+        if ([_delegate respondsToSelector:@selector(didGetRadiusSearchList:)]) {
+            [_delegate didGetRadiusSearchList:statuesArr];
         }
     }
     

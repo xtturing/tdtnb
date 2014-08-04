@@ -14,7 +14,8 @@
 #define REQUEST_TYPE          @"requestType"
 
 typedef enum {
-    AAGetAreaList = 0,           //获取当前区域列表
+    AAGetSearchList = 0,           //获取当前区域列表
+    AAGetRadiusList,
     //继续添加
     
 }DataRequestType;
@@ -27,7 +28,9 @@ typedef enum {
 @protocol dataHttpDelegate <NSObject>
 @optional
 //获取到当前区域列表
--(void)didGetAreaList:(NSArray*)areaList;
+-(void)didGetSearchList:(NSArray*)searchList;
+//
+-(void)didGetRadiusSearchList:(NSArray *)radiusList;
 //继续添加
 @end
 
@@ -45,7 +48,10 @@ typedef enum {
 - (void)resume;
 - (void)cancel;
 //获取当前区域列表
--(void)getAreaList:(int)type father:(int)father;
+-(void)letDoSearchWithQuery:(NSString *)query region:(NSString *)region searchType:(int)type pageSize:(int)size pageNum:(int)num;
+
+//
+-(void)letDoRadiusSearchWithQuery:(NSString *)query location:(NSString *)location  radius:(int)radius scope:(int)scope pageSize:(int)size pageNum:(int)num;
 
 //继续添加
 @end
