@@ -8,6 +8,9 @@
 
 #import "NBNearSearchViewController.h"
 #import "SpeechToTextModule.h"
+#import "NBSearchTableViewController.h"
+#import "SVProgressHUD.h"
+
 #define Duration 0.2
 @interface NBNearSearchViewController ()<UISearchBarDelegate,SpeechToTextModuleDelegate>{
     UITextField *fakeTextField;
@@ -17,6 +20,7 @@
     
 }
 @property (strong , nonatomic) NSMutableArray *itemArray;
+@property (strong, nonatomic)NSArray *textArray;
 @property(nonatomic,strong) UISearchBar *searchBar;
 @property(nonatomic,strong) UIButton *hiddenBtn;
 @property(nonatomic, strong)SpeechToTextModule *speechToTextObj;
@@ -79,6 +83,7 @@
             btn.tag = i;
             [btn setImage:image forState:UIControlStateNormal];
             [self.imageView addSubview:btn];
+            [btn addTarget:self action:@selector(nearSearch:) forControlEvents:UIControlEventTouchUpInside];
             UILongPressGestureRecognizer *longGesture = [[UILongPressGestureRecognizer alloc] initWithTarget:self action:@selector(buttonLongPressed:)];
             [btn addGestureRecognizer:longGesture];
             [self.itemArray addObject:btn];
@@ -93,8 +98,11 @@
 - (void)viewDidLoad
 {
     [super viewDidLoad];
+     self.navigationItem.title = @"返回";
+    _textArray = [NSArray arrayWithObjects:@"餐饮",@"酒店",@"KTV",@"公交站",@"加油站",@"电影院",@"咖啡厅",@"停车场",@"银行",@"ATM",@"超市",@"商场",@"药店",@"医院",@"公厕",nil];
     fakeTextField = [[UITextField alloc] initWithFrame:CGRectZero];
     [fakeTextField setHidden:NO];
+    fakeTextField.userInteractionEnabled =YES;
     [self.view addSubview:fakeTextField];
     self.speechToTextObj = [[SpeechToTextModule alloc] initWithCustomDisplay:@"SineWaveViewController"];
     [self.speechToTextObj setDelegate:self];
@@ -194,10 +202,7 @@
     return -1;
 }
 - (void)keyboardWillShow:(NSNotification *)notification {
-    _hiddenBtn = [[UIButton alloc] initWithFrame:CGRectMake(0, 0, CGRectGetWidth(self.view.frame), CGRectGetHeight(self.view.frame))];
-    [_hiddenBtn setBackgroundColor:[UIColor clearColor]];
-    [_hiddenBtn addTarget:self action:@selector(hiddenKeyBord) forControlEvents:UIControlEventTouchUpInside];
-    [self.view addSubview:_hiddenBtn];
+    [self.view addSubview:self.hiddenBtn];
 }
 
 
@@ -205,7 +210,14 @@
     [_hiddenBtn removeFromSuperview];
     
 }
-
+-(UIButton *)hiddenBtn{
+    if(!_hiddenBtn){
+        _hiddenBtn = [[UIButton alloc] initWithFrame:CGRectMake(0, 0, CGRectGetWidth(self.view.frame), CGRectGetHeight(self.view.frame)-200)];
+        [_hiddenBtn setBackgroundColor:[UIColor clearColor]];
+        [_hiddenBtn addTarget:self action:@selector(hiddenKeyBord) forControlEvents:UIControlEventTouchUpInside];
+    }
+    return _hiddenBtn;
+}
 #pragma  mark -speechToText
 
 -(void)speechToText{
@@ -235,6 +247,46 @@
 - (void)requestFailedWithError:(NSError *)error
 {
     NSLog(@"error: %@",error);
+}
+
+- (void)nearSearch:(id)sender{
+    
+    UIButton *btn = (UIButton *)sender;
+    if(btn.tag < 15){
+        NBSearchTableViewController *searchViewController = [[NBSearchTableViewController alloc] init];
+        searchViewController.searchText = [_textArray objectAtIndex:btn.tag];
+        searchViewController.searchType = AFRadiusSearch;
+        searchViewController.location = @"39.915,116.404";
+        _searchBar.text = [_textArray objectAtIndex:btn.tag];
+        [self.navigationController pushViewController:searchViewController animated:YES];
+    }    
+}
+#pragma mark -UISearchBarDelegate
+
+//点击键盘上的search按钮时调用
+
+- (void) searchBarSearchButtonClicked:(UISearchBar *)searchBar
+
+{
+    [searchBar resignFirstResponder];
+    NBSearchTableViewController *searchViewController = [[NBSearchTableViewController alloc] init];
+    searchViewController.searchText = searchBar.text;
+    searchViewController.searchType = AFKeySearch;
+    [self.navigationController pushViewController:searchViewController animated:YES];
+    
+}
+
+
+//cancel按钮点击时调用
+
+- (void) searchBarCancelButtonClicked:(UISearchBar *)searchBar
+
+{
+    
+    searchBar.text = @"";
+    
+    [searchBar resignFirstResponder];
+    
 }
 
 

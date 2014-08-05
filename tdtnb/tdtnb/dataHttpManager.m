@@ -13,6 +13,7 @@
 #import "NBSearch.h"
 
 static dataHttpManager * instance=nil;
+
 @implementation dataHttpManager
 
 -(void)dealloc
@@ -88,7 +89,7 @@ static dataHttpManager * instance=nil;
     NSString *s = [NSString stringWithFormat:@"%d",size];
     NSString *n = [NSString stringWithFormat:@"%d",num];
     NSMutableDictionary     *params = [NSMutableDictionary dictionaryWithObjectsAndKeys:  q, @"query", r,  @"region",s,  @"page_size",n,  @"page_num",@"1",  @"scope",@"yMMBb6l8GBeG6GcHjnNuHVMy",  @"ak",@"json", @"output",nil];
-    NSString *baseUrl =[NSString  stringWithFormat:@"%@/find/get_area_list.aspx",HTTP_URL];
+    NSString *baseUrl =[NSString  stringWithFormat:@"%@",HTTP_URL];
     NSURL  *url = [self generateURL:baseUrl params:params];
     ASIHTTPRequest *request = [[ASIHTTPRequest alloc] initWithURL:url];
     NSLog(@"url=%@",url);
@@ -97,7 +98,17 @@ static dataHttpManager * instance=nil;
 }
 //
 -(void)letDoRadiusSearchWithQuery:(NSString *)query location:(NSString *)location  radius:(int)radius scope:(int)scope pageSize:(int)size pageNum:(int)num{
-    
+    NSString *q = [NSString stringWithFormat:@"%d",radius];
+    NSString *r = [NSString stringWithFormat:@"%d",scope];
+    NSString *s = [NSString stringWithFormat:@"%d",size];
+    NSString *n = [NSString stringWithFormat:@"%d",num];
+    NSMutableDictionary     *params = [NSMutableDictionary dictionaryWithObjectsAndKeys:  query, @"query",location,  @"location",s,  @"page_size",n,  @"page_num",r,  @"scope",q,  @"radius",@"yMMBb6l8GBeG6GcHjnNuHVMy",  @"ak",@"json", @"output",nil];
+    NSString *baseUrl =[NSString  stringWithFormat:@"%@",HTTP_URL];
+    NSURL  *url = [self generateURL:baseUrl params:params];
+    ASIHTTPRequest *request = [[ASIHTTPRequest alloc] initWithURL:url];
+    NSLog(@"url=%@",url);
+    [self setGetUserInfo:request withRequestType:AAGetRadiusList];
+    [_requestQueue addOperation:request];
 }
 //继续添加
 
@@ -131,6 +142,9 @@ static dataHttpManager * instance=nil;
 //失败
 - (void)requestFailed:(ASIHTTPRequest *)request{
     NSLog(@"请求失败:%@,%@,",request.responseString,[request.error localizedDescription]);
+    if ([_delegate respondsToSelector:@selector(didGetFailed)]) {
+        [_delegate didGetFailed];
+    }
 }
 
 //成功
@@ -140,13 +154,6 @@ static dataHttpManager * instance=nil;
     NSString * responseString = [request responseString];
     SBJsonParser    *parser     = [[SBJsonParser alloc] init];    
     id  returnObject = [parser objectWithString:responseString];
-    if ([returnObject isKindOfClass:[NSDictionary class]]) {
-        NSString *errorString = [returnObject  objectForKey:@"IsOk"];
-        if ([errorString intValue]==0) {
-            NSLog(@"数据错误!");
-        }
-    }
-    
     NSDictionary *userInfo = nil;
     NSArray *userArr = nil;
     if ([returnObject isKindOfClass:[NSDictionary class]]) {
@@ -156,7 +163,9 @@ static dataHttpManager * instance=nil;
         userArr = (NSArray*)returnObject;
     }
     else {
-        return;
+        if ([_delegate respondsToSelector:@selector(didGetFailed)]) {
+            [_delegate didGetFailed];
+        }
     }
     
     
@@ -164,7 +173,10 @@ static dataHttpManager * instance=nil;
     if (requestType == AAGetSearchList) {
         NSArray *arr= [userInfo objectForKey:@"results"];
         NSMutableArray  *statuesArr = [[NSMutableArray alloc]initWithCapacity:0];
-        
+        for(NSDictionary *item in arr){
+            NBSearch *result = [NBSearch searchWithJsonDictionary:item];
+            [statuesArr addObject:result];
+        }
         if ([_delegate respondsToSelector:@selector(didGetSearchList:)]) {
             [_delegate didGetSearchList:statuesArr];
         }
@@ -173,7 +185,10 @@ static dataHttpManager * instance=nil;
     if (requestType == AAGetRadiusList) {
         NSArray *arr= [userInfo objectForKey:@"results"];
         NSMutableArray  *statuesArr = [[NSMutableArray alloc]initWithCapacity:0];
-        
+        for(NSDictionary *item in arr){
+            NBSearch *result = [NBSearch searchWithJsonDictionary:item];
+            [statuesArr addObject:result];
+        }
         if ([_delegate respondsToSelector:@selector(didGetRadiusSearchList:)]) {
             [_delegate didGetRadiusSearchList:statuesArr];
         }

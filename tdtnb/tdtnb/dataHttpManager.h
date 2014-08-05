@@ -10,7 +10,11 @@
 #import "StringUtil.h"
 #import "NSStringAdditions.h"
 
-#define HTTP_URL              @"http://www.szlife360.com/villa"
+#define HTTP_URL              @"http://api.map.baidu.com/place/v2/search"
+#define HTTP_SEARCH_URL       @"http://api.tianditu.com/api/api-new"
+#define HTTP_ERRORURL         @"http://58.215.201.110:9000/mobile/new"
+#define HTTP_SEARCH           @"http://58.215.201.110:9000/baiduQuery"
+#define HTTP_DOWNLOAD         @"http://58.215.201.110:9080/tpkService/TpkFileList"
 #define REQUEST_TYPE          @"requestType"
 
 typedef enum {
@@ -27,6 +31,8 @@ typedef enum {
 //Delegate
 @protocol dataHttpDelegate <NSObject>
 @optional
+//
+-(void)didGetFailed;
 //获取到当前区域列表
 -(void)didGetSearchList:(NSArray*)searchList;
 //

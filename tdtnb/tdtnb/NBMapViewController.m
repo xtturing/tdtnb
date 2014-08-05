@@ -14,6 +14,8 @@
 #import "NBDownLoadViewController.h"
 #import "SpeechToTextModule.h"
 #import "Reachability.h"
+#import "NBSearch.h"
+#import "NBSearchTableViewController.h"
 
 //contants for data layers
 #define kTiledNB @"http://183.136.157.100:10087/wmts/nbmapall?service=WMTS&request=GetTile&version=1.0.0&layer=0&style=default&tileMatrixSet=nbmap&format=image/png&TILEMATRIX=%d&TILEROW=%d&TILECOL=%d"
@@ -70,7 +72,12 @@
             [[ _searchBar.subviews objectAtIndex: 0 ] removeFromSuperview ];
             [ _searchBar setBackgroundColor:[ UIColor clearColor ]];
         }
-        
+        for(id cc in [_searchBar subviews]){
+            if([cc isKindOfClass:[UIButton class]]){
+                UIButton *btn = (UIButton *)cc;
+                [btn setTitle:@"取消"  forState:UIControlStateNormal];
+            }  
+        }
         //将搜索条放在一个UIView上
         UIView *searchView = [[UIView alloc]initWithFrame:CGRectMake(0, 0, CGRectGetWidth(self.view.frame), 44)];
         searchView.backgroundColor = [UIColor clearColor];
@@ -274,16 +281,22 @@
 }
 
 - (void)keyboardWillShow:(NSNotification *)notification {
-    _hiddenBtn = [[UIButton alloc] initWithFrame:CGRectMake(0, 0, CGRectGetWidth(self.view.frame), CGRectGetHeight(self.view.frame))];
-    [_hiddenBtn setBackgroundColor:[UIColor clearColor]];
-    [_hiddenBtn addTarget:self action:@selector(hiddenKeyBord) forControlEvents:UIControlEventTouchUpInside];
-    [self.view addSubview:_hiddenBtn];
+     [self.view addSubview:self.hiddenBtn];
 }
 
 
 - (void)keyboardWillHide:(NSNotification *)notification {
     [_hiddenBtn removeFromSuperview];
    
+}
+
+-(UIButton *)hiddenBtn{
+    if(!_hiddenBtn){
+        _hiddenBtn = [[UIButton alloc] initWithFrame:CGRectMake(0, 0, CGRectGetWidth(self.view.frame), CGRectGetHeight(self.view.frame)-200)];
+        [_hiddenBtn setBackgroundColor:[UIColor clearColor]];
+        [_hiddenBtn addTarget:self action:@selector(hiddenKeyBord) forControlEvents:UIControlEventTouchUpInside];
+    }
+    return _hiddenBtn;
 }
 
 #pragma  mark -speechToText
@@ -344,5 +357,35 @@
     
     [view show];
 }
+
+#pragma mark -UISearchBarDelegate
+
+//点击键盘上的search按钮时调用
+
+- (void) searchBarSearchButtonClicked:(UISearchBar *)searchBar
+
+{
+    [searchBar resignFirstResponder];
+    NBSearchTableViewController *searchViewController = [[NBSearchTableViewController alloc] init];
+    searchViewController.searchText = searchBar.text;
+    searchViewController.searchType = AFKeySearch;
+    [self.navigationController pushViewController:searchViewController animated:YES];
+    
+}
+
+
+//cancel按钮点击时调用
+
+- (void) searchBarCancelButtonClicked:(UISearchBar *)searchBar
+
+{
+    
+    searchBar.text = @"";
+
+    [searchBar resignFirstResponder];
+    
+}
+
+
 
 @end
