@@ -15,4 +15,17 @@
 @property (nonatomic, strong) IBOutlet AGSMapView *mapView;
 @property (nonatomic, strong) AGSGoogleMapLayer *tileMapLayer;
 @property (nonatomic, strong) AGSGoogleMapLayer *wmsMapLayer;
+@property (nonatomic, strong) AGSDynamicMapServiceLayer *dynamicMapLayer;
+
+-(IBAction)gps:(id)sender;
+-(IBAction)list:(id)sender;
+-(IBAction)prev:(id)sender;
+-(IBAction)next:(id)sender;
+-(IBAction)changeMap:(id)sender;
+-(IBAction)singleLine:(id)sender;
+-(IBAction)zoomIn:(id)sender;
+-(IBAction)zoomOut:(id)sender;
+
+
+
 @end

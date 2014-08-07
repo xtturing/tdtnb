@@ -8,8 +8,9 @@
 
 #import "NBLineServiceViewController.h"
 //contants for data layers
-#define kTiledMapServiceURL @"http://server.arcgisonline.com/ArcGIS/rest/services/ESRI_StreetMap_World_2D/MapServer"
-#define kDynamicMapServiceURL @"http://sampleserver1.arcgisonline.com/ArcGIS/rest/services/Specialty/ESRI_StateCityHighway_USA/MapServer"
+#define kTiledNB @"http://60.190.2.120/wmts/nbmapall?service=WMTS&request=GetTile&version=1.0.0&layer=0&style=default&tileMatrixSet=nbmap&format=image/png&TILEMATRIX=%d&TILEROW=%d&TILECOL=%d"
+#define KTiledTDT @"http://t0.tianditu.com/vec_c/wmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=vec&STYLE=default&TILEMATRIXSET=c&TILEMATRIX=%d&TILEROW=%d&TILECOL=%d&FORMAT=tiles"
+#define KTiledTDTLabel  @"http://t0.tianditu.com/cva_c/wmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=cva&STYLE=default&TILEMATRIXSET=c&TILEMATRIX=%d&TILEROW=%d&TILECOL=%d&FORMAT=tiles"
 
 @interface NBLineServiceViewController ()<AGSMapViewLayerDelegate>
 
@@ -47,33 +48,27 @@
     
     self.mapView.layerDelegate = self;
 	
-	//create an instance of a tiled map service layer
-	AGSTiledMapServiceLayer *tiledLayer = [[AGSTiledMapServiceLayer alloc] initWithURL:[NSURL URLWithString:kTiledMapServiceURL]];
-	
-	//Add it to the map view
-	UIView<AGSLayerView>* lyr = [self.mapView addMapLayer:tiledLayer withName:@"Tiled Layer"];
-    
-	
-	// Setting these two properties lets the map draw while still performing a zoom/pan
-	lyr.drawDuringPanning = YES;
-	lyr.drawDuringZooming = YES;
-    AGSSpatialReference *sr = [AGSSpatialReference spatialReferenceWithWKID:4326];
-	double xmin, ymin, xmax, ymax;
-	xmin = -125.33203125;
-	ymin = -1.58203125;
-	xmax = -69.08203125;
-	ymax = 79.27734375;
-	
-	// zoom to the United States
-	AGSEnvelope *env = [AGSEnvelope envelopeWithXmin:xmin ymin:ymin xmax:xmax ymax:ymax spatialReference:sr];
-	[self.mapView zoomToEnvelope:env animated:YES];
-    // Do any additional setup after loading the view from its nib.
+	[self addTileLayer];
+    [self zooMapToLevel:13 withCenter:[AGSPoint pointWithX:121.55629730245123 y:29.874820709509887 spatialReference:self.mapView.spatialReference]];
 }
+
+
 
 - (void)didReceiveMemoryWarning
 {
     [super didReceiveMemoryWarning];
     // Dispose of any resources that can be recreated.
+}
+- (void)addTileLayer{
+    AGSGoogleMapLayer *tileMapLayer=[[AGSGoogleMapLayer alloc] initWithGoogleMapSchema:kTiledNB tdPath:KTiledTDT envelope:[AGSEnvelope envelopeWithXmin:119.65171432515596 ymin:29.021148681921858 xmax:123.40354537984406  ymax:30.441131592078335  spatialReference:self.mapView.spatialReference] level:@"9"];
+	[self.mapView insertMapLayer:tileMapLayer withName:@"tiledLayer" atIndex:0];
+    AGSGoogleMapLayer *tileLabelLayer = [[AGSGoogleMapLayer alloc] initWithGoogleMapSchema:nil tdPath:KTiledTDTLabel envelope:[AGSEnvelope envelopeWithXmin:119.65171432515596 ymin:29.021148681921858 xmax:123.40354537984406  ymax:30.441131592078335  spatialReference:self.mapView.spatialReference] level:@"9"];
+    [self.mapView insertMapLayer:tileLabelLayer withName:@"tiledLabelLayer" atIndex:1];
+}
+- (void)zooMapToLevel:(int)level withCenter:(AGSPoint *)point{
+    AGSGoogleMapLayer *layer = (AGSGoogleMapLayer *)[self.mapView.mapLayers objectAtIndex:0];
+    AGSLOD *lod = [layer.tileInfo.lods objectAtIndex:level];
+    [self.mapView zoomToResolution:lod.resolution withCenterPoint:point animated:YES];
 }
 
 @end

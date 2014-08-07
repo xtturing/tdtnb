@@ -7,6 +7,7 @@
 //
 
 #import <UIKit/UIKit.h>
+#import "AGSGoogleMapLayer.h"
 
 @interface NBLineServiceViewController : UIViewController
 

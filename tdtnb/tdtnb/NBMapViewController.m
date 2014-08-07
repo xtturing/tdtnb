@@ -16,13 +16,16 @@
 #import "Reachability.h"
 #import "NBSearch.h"
 #import "NBSearchTableViewController.h"
+#import "CLLocation+Sino.h"
 
 //contants for data layers
-#define kTiledNB @"http://183.136.157.100:10087/wmts/nbmapall?service=WMTS&request=GetTile&version=1.0.0&layer=0&style=default&tileMatrixSet=nbmap&format=image/png&TILEMATRIX=%d&TILEROW=%d&TILECOL=%d"
+#define kTiledNB @"http://60.190.2.120/wmts/nbmapall?service=WMTS&request=GetTile&version=1.0.0&layer=0&style=default&tileMatrixSet=nbmap&format=image/png&TILEMATRIX=%d&TILEROW=%d&TILECOL=%d"
 #define KTiledTDT @"http://t0.tianditu.com/vec_c/wmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=vec&STYLE=default&TILEMATRIXSET=c&TILEMATRIX=%d&TILEROW=%d&TILECOL=%d&FORMAT=tiles"
+#define KTiledTDTLabel  @"http://t0.tianditu.com/cva_c/wmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=cva&STYLE=default&TILEMATRIXSET=c&TILEMATRIX=%d&TILEROW=%d&TILECOL=%d&FORMAT=tiles"
 
-#define kWMSNB  @"http://183.136.157.100:10087/wmts/nbmapall?service=WMTS&request=GetTile&version=1.0.0&layer=0&style=default&tileMatrixSet=nbmap&format=image/png&TILEMATRIX=%d&TILEROW=%d&TILECOL=%d"
+#define kWMSNB  @"http://60.190.2.120:10089/wmts/nbrmapall?service=WMTS&request=GetTile&version=1.0.0&layer=0&style=default&tileMatrixSet=nbmap&format=image/jpeg&TILEMATRIX=%d&TILEROW=%d&TILECOL=%d"
 #define kWMSTDT  @"http://t0.tianditu.com/img_c/wmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=img&STYLE=default&TILEMATRIXSET=c&TILEMATRIX=%d&TILEROW=%d&TILECOL=%d&FORMAT=tiles"
+#define KWMSTDTLabel @"http://t0.tianditu.com/cia_c/wmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=cia&STYLE=default&TILEMATRIXSET=c&TILEMATRIX=%d&TILEROW=%d&TILECOL=%d&FORMAT=tiles"
 
 #define kDynamicNB @"http://www.nbmap.gov.cn/ArcGIS/rest/services/nbdxx/MapServer"
 
@@ -125,9 +128,8 @@
     }
     self.bar.delegate = self;
     self.mapView.layerDelegate = self;
-    _tileMapLayer=[[AGSGoogleMapLayer alloc] initWithGoogleMapSchema:kTiledNB tdPath:KTiledTDT envelope:[AGSEnvelope envelopeWithXmin:119.49 ymin:35.522 xmax:121.032  ymax:37.164  spatialReference:self.mapView.spatialReference] level:@"9"];
-	[self.mapView addMapLayer:_tileMapLayer withName:@"tiledLayer"];
-    [self.mapView bringSubviewToFront:self.view];
+    [self addTileLayer];
+    [self zooMapToLevel:13 withCenter:[AGSPoint pointWithX:121.55629730245123 y:29.874820709509887 spatialReference:self.mapView.spatialReference]];
     // Do any additional setup after loading the view from its nib.
 }
 
@@ -144,7 +146,44 @@
 - (void)dealloc{
     [[NSNotificationCenter defaultCenter] removeObserver:self];
 }
+- (void)viewDidUnload {
+    //Stop the GPS, undo the map rotation (if any)
+    if(self.mapView.gps.enabled){
+        [self.mapView.gps stop];
+    }
+}
 #pragma  mark -  Action
+
+- (void)addTileLayer{
+    if(_wmsMapLayer){
+        [self.mapView removeMapLayerWithName:@"wmsLayer"];
+        [self.mapView removeMapLayerWithName:@"wmsLabelLayer"];
+        _wmsMapLayer = nil;
+    }
+    _tileMapLayer=[[AGSGoogleMapLayer alloc] initWithGoogleMapSchema:kTiledNB tdPath:KTiledTDT envelope:[AGSEnvelope envelopeWithXmin:119.65171432515596 ymin:29.021148681921858 xmax:123.40354537984406  ymax:30.441131592078335  spatialReference:self.mapView.spatialReference] level:@"9"];
+	[self.mapView insertMapLayer:_tileMapLayer withName:@"tiledLayer" atIndex:0];
+    AGSGoogleMapLayer *tileLabelLayer = [[AGSGoogleMapLayer alloc] initWithGoogleMapSchema:nil tdPath:KTiledTDTLabel envelope:[AGSEnvelope envelopeWithXmin:119.65171432515596 ymin:29.021148681921858 xmax:123.40354537984406  ymax:30.441131592078335  spatialReference:self.mapView.spatialReference] level:@"9"];
+    [self.mapView insertMapLayer:tileLabelLayer withName:@"tiledLabelLayer" atIndex:1];
+}
+
+- (void)addWMSLayer{
+    if (_tileMapLayer) {
+        [self.mapView removeMapLayerWithName:@"tiledLayer"];
+        [self.mapView removeMapLayerWithName:@"tiledLabelLayer"];
+        _tileMapLayer = nil;
+    }
+    _wmsMapLayer=[[AGSGoogleMapLayer alloc] initWithGoogleMapSchema:kWMSNB tdPath:kWMSTDT envelope:[AGSEnvelope envelopeWithXmin:119.65171432515596 ymin:29.021148681921858 xmax:123.40354537984406  ymax:30.441131592078335  spatialReference:self.mapView.spatialReference] level:@"18"];
+	[self.mapView insertMapLayer:_wmsMapLayer withName:@"wmsLayer" atIndex:0];
+    AGSGoogleMapLayer *wmsLabelLayer = [[AGSGoogleMapLayer alloc] initWithGoogleMapSchema:nil tdPath:KWMSTDTLabel envelope:[AGSEnvelope envelopeWithXmin:119.65171432515596 ymin:29.021148681921858 xmax:123.40354537984406  ymax:30.441131592078335  spatialReference:self.mapView.spatialReference] level:@"18"];
+    [self.mapView insertMapLayer:wmsLabelLayer withName:@"wmsLabelLayer" atIndex:1];
+}
+
+- (void)zooMapToLevel:(int)level withCenter:(AGSPoint *)point{
+    AGSGoogleMapLayer *layer = (AGSGoogleMapLayer *)[self.mapView.mapLayers objectAtIndex:0];
+    AGSLOD *lod = [layer.tileInfo.lods objectAtIndex:level];
+    [self.mapView zoomToResolution:lod.resolution withCenterPoint:point animated:YES];
+}
+
 
 - (void)tabBar:(UITabBar *)tabBar didSelectItem:(UITabBarItem *)item{
     [_toolView removeFromSuperview];
@@ -179,6 +218,63 @@
 - (void)hiddenKeyBord{
     [_searchBar resignFirstResponder];
 }
+
+#pragma mark -IBAction
+
+-(IBAction)gps:(id)sender{
+    if(self.mapView.gps.enabled){
+        [self.mapView centerAtPoint:self.mapView.gps.currentPoint animated:YES];
+    }else {
+        UIAlertView *alert;
+        alert = [[UIAlertView alloc]
+                 initWithTitle:@"天地图宁波"
+                 message:@"请开启GPS使用你的位置信息"
+                 delegate:nil cancelButtonTitle:nil
+                 otherButtonTitles:@"确定", nil];
+        [alert show];
+        return;
+    }
+}
+-(IBAction)list:(id)sender{
+    if(_searchBar.text.length>0){
+        NBSearchTableViewController *searchViewController = [[NBSearchTableViewController alloc] init];
+        searchViewController.searchText = _searchBar.text;
+        searchViewController.searchType = AFKeySearch;
+        [self.navigationController pushViewController:searchViewController animated:YES];
+    }
+
+}
+-(IBAction)prev:(id)sender{
+    
+}
+-(IBAction)next:(id)sender{
+    
+}
+-(IBAction)changeMap:(id)sender{
+    AGSGoogleMapLayer *layer = [self.mapView.mapLayers objectAtIndex:0];
+    if([layer.name isEqualToString:@"tiledLayer"]){
+        [self addWMSLayer];
+    }else{
+        [self addTileLayer];
+    }
+}
+-(IBAction)singleLine:(id)sender{
+    if(!_dynamicMapLayer){
+        _dynamicMapLayer = [AGSDynamicMapServiceLayer dynamicMapServiceLayerWithURL:[NSURL URLWithString:kDynamicNB]];
+        [self.mapView addMapLayer:_dynamicMapLayer withName:@"dynamicMapLayer"];
+    }else{
+        [self.mapView removeMapLayerWithName:@"dynamicMapLayer"];
+        _dynamicMapLayer = nil;
+    }
+}
+-(IBAction)zoomIn:(id)sender{
+    [self.mapView zoomIn:YES];
+}
+-(IBAction)zoomOut:(id)sender{
+    [self.mapView zoomOut:YES];
+}
+
+#pragma mark -init
 
 - (NBNearSearchViewController *)nearSearchViewController{
     if(!_nearSearchViewController){
@@ -260,7 +356,7 @@
 -(void) mapViewDidLoad:(AGSMapView*)mapView {
     
 	// comment to disable the GPS on start up
-	[self.mapView.gps start];
+   [self.mapView.gps start];
 }
 
 - (void)snopShot{
@@ -366,10 +462,12 @@
 
 {
     [searchBar resignFirstResponder];
-    NBSearchTableViewController *searchViewController = [[NBSearchTableViewController alloc] init];
-    searchViewController.searchText = searchBar.text;
-    searchViewController.searchType = AFKeySearch;
-    [self.navigationController pushViewController:searchViewController animated:YES];
+    if(_searchBar.text.length>0){
+        NBSearchTableViewController *searchViewController = [[NBSearchTableViewController alloc] init];
+        searchViewController.searchText = _searchBar.text;
+        searchViewController.searchType = AFKeySearch;
+        [self.navigationController pushViewController:searchViewController animated:YES];
+    }
     
 }
 
