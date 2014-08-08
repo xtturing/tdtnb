@@ -17,5 +17,6 @@
 @interface NBToolView : UIView
 
 @property (nonatomic,assign) id<toolDelegate> delegate;
+@property (nonatomic, strong) UILabel *label;
 
 @end

@@ -31,6 +31,10 @@
 
 @interface NBMapViewController ()<toolDelegate,UISearchBarDelegate,AGSMapViewLayerDelegate,SpeechToTextModuleDelegate>{
     UITextField *fakeTextField;
+    double _distance;
+    double _area;
+    AGSSRUnit _distanceUnit;
+    AGSAreaUnits _areaUnit;
 }
 
 @property(nonatomic,strong) NBNearSearchViewController *nearSearchViewController;
@@ -39,6 +43,7 @@
 @property(nonatomic,strong) NBToolView *toolView;
 @property(nonatomic,strong) UISearchBar *searchBar;
 @property(nonatomic,strong) UIButton *hiddenBtn;
+@property(nonatomic,strong) UITextView *textView;
 @property(nonatomic, strong)SpeechToTextModule *speechToTextObj;
 
 @end
@@ -187,6 +192,7 @@
 
 - (void)tabBar:(UITabBar *)tabBar didSelectItem:(UITabBarItem *)item{
     [_toolView removeFromSuperview];
+    [[NSNotificationCenter defaultCenter] removeObserver:self name:@"GeometryChanged" object:nil];
     switch (item.tag) {
         case 1001:
         {
@@ -206,6 +212,12 @@
         case 1004:
         {
             [self.mapView addSubview:self.toolView];
+            [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(respondToGeomChanged:) name:@"GeometryChanged" object:nil];
+            // Set the default measures and units
+            _distance = 0;
+            _area = 0;
+            _distanceUnit = AGSSRUnitKilometer;
+            _areaUnit = AGSAreaUnitsSquareKilometers;
         }
             break;
             
@@ -217,6 +229,9 @@
 
 - (void)hiddenKeyBord{
     [_searchBar resignFirstResponder];
+    if (_textView) {
+        [_textView resignFirstResponder];
+    }
 }
 
 #pragma mark -IBAction
@@ -299,7 +314,6 @@
     if(!_toolView){
         _toolView = [[NBToolView alloc] initWithFrame:CGRectMake(0, CGRectGetHeight(self.view.frame)-49-70, CGRectGetWidth(self.view.frame), 70)];
         _toolView.delegate = self;
-        
     }
     return _toolView;
 }
@@ -315,14 +329,14 @@
             break;
         case 101:
         {
-            
+            self.sketchLayer.geometry = [[AGSMutablePolyline alloc] initWithSpatialReference:self.mapView.spatialReference];
             
         }
             break;
             
         case 102:
         {
-            
+            self.sketchLayer.geometry = [[AGSMutablePolygon alloc] initWithSpatialReference:self.mapView.spatialReference];
             
         }
             break;
@@ -336,14 +350,12 @@
             
         case 104:
         {
-            
-            
+            self.sketchLayer.geometry = [[AGSMutablePoint alloc] initWithSpatialReference:self.mapView.spatialReference];
         }
             break;
         case 105:
         {
-            
-            
+            [self.sketchLayer clear];
         }
             break;
             
@@ -354,9 +366,12 @@
 #pragma mark AGSMapViewLayerDelegate methods
 
 -(void) mapViewDidLoad:(AGSMapView*)mapView {
-    
-	// comment to disable the GPS on start up
+    // comment to disable the GPS on start up
    [self.mapView.gps start];
+    self.sketchLayer = [AGSSketchGraphicsLayer graphicsLayer];
+    self.sketchLayer.geometry = [[AGSMutablePolyline alloc] initWithSpatialReference:self.mapView.spatialReference];
+    [self.mapView addMapLayer:self.sketchLayer withName:@"sketchLayer"];
+    self.mapView.touchDelegate = self.sketchLayer;
 }
 
 - (void)snopShot{
@@ -459,7 +474,6 @@
 //点击键盘上的search按钮时调用
 
 - (void) searchBarSearchButtonClicked:(UISearchBar *)searchBar
-
 {
     [searchBar resignFirstResponder];
     if(_searchBar.text.length>0){
@@ -477,13 +491,113 @@
 - (void) searchBarCancelButtonClicked:(UISearchBar *)searchBar
 
 {
-    
     searchBar.text = @"";
-
     [searchBar resignFirstResponder];
     
 }
 
 
+#pragma mark -measure
+
+- (void)respondToGeomChanged:(NSNotification*)notification {
+    
+    AGSGeometry *sketchGeometry = self.sketchLayer.geometry;
+    
+    // Update the distance and area whenever the geometry changes
+    if ([sketchGeometry isKindOfClass:[AGSMutablePolyline class]]) {
+        [self updateDistance:_distanceUnit];
+    }
+    else if ([sketchGeometry isKindOfClass:[AGSMutablePolygon class]]){
+        [self updateArea:_areaUnit];
+    }else if ([sketchGeometry isKindOfClass:[AGSMutablePoint class]]){
+        [self errorRecovery];
+    }
+   
+}
+
+- (void)updateDistance:(AGSSRUnit)unit {
+    
+    // Get the sketch layer's geometry
+    AGSGeometry *sketchGeometry = self.sketchLayer.geometry;
+    AGSGeometryEngine *geometryEngine = [AGSGeometryEngine defaultGeometryEngine];
+    
+    // Get the geodesic distance of the current line
+    _distance = [geometryEngine geodesicLengthOfGeometry:sketchGeometry inUnit:_distanceUnit];
+    if(_distance == 0){
+        self.toolView.label.text = @"请在地图上点击画线测量距离";
+    }else{
+        self.toolView.label.text = [NSString stringWithFormat:@"距离：%.2f 公里", _distance];
+    }
+}
+
+- (void)updateArea:(AGSAreaUnits)unit {
+    
+    // Get the sketch layer's geometry
+    AGSGeometry *sketchGeometry = self.sketchLayer.geometry;
+    AGSGeometryEngine *geometryEngine = [AGSGeometryEngine defaultGeometryEngine];
+    
+    // Get the area of the current polygon
+    _area = [geometryEngine shapePreservingAreaOfGeometry:sketchGeometry inUnit:_areaUnit];
+    if(_area == 0){
+        self.toolView.label.text = @"请在地图上点击画面测量面积";
+    }else{
+        self.toolView.label.text = [NSString stringWithFormat:@"面积：%.4f 平方公里", _area];
+    }
+}
+
+- (void)errorRecovery{
+    AGSGeometry *sketchGeometry = self.sketchLayer.geometry;
+    if ([sketchGeometry isKindOfClass:[AGSMutablePoint class]] && sketchGeometry.isValid){
+        AGSPoint *point = (AGSPoint *)sketchGeometry;
+        
+        self.mapView.callout.customView = self.textView;
+        [self.mapView showCalloutAtPoint:point];
+    }
+}
+
+- (UITextView *)textView{
+    if(!_textView){
+        _textView =[[UITextView alloc] initWithFrame:CGRectMake(0, 0, 120, 60)];
+        _textView.text = @"请输入纠错内容...";
+        _textView.delegate = self;
+        _textView.textColor = [UIColor grayColor];
+        _textView.returnKeyType = UIReturnKeySend;
+        _textView.scrollEnabled = YES;
+    }
+    return _textView;
+}
+
+#pragma mark - AGSMapViewCalloutDelegate
+
+- (BOOL)mapView:(AGSMapView *)mapView shouldShowCalloutForGraphic:(AGSGraphic *)graphic{
+    return YES;
+}
+
+#pragma mark - UITextViewDelegate Methods
+- (BOOL)textViewShouldBeginEditing:(UITextView *)textView{
+    _textView.text = @"";
+    return YES;
+}
+
+- (BOOL)textView:(UITextView *)textView shouldChangeTextInRange:(NSRange)range replacementText:(NSString *)text
+{
+    if ([text isEqualToString:@"\n"]) {
+        [textView resignFirstResponder];
+        [self sendErrorRecovery];
+        return NO;
+    }
+    if (range.location>=100)
+    {
+        return  NO;
+    }
+    else
+    {
+        return YES;   
+    }   
+}
+
+- (void)sendErrorRecovery{
+    
+}
 
 @end

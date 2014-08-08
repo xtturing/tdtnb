@@ -9,13 +9,14 @@
 #import <UIKit/UIKit.h>
 #import "AGSGoogleMapLayer.h"
 
-@interface NBMapViewController : UIViewController<UITabBarDelegate>
+@interface NBMapViewController : UIViewController<UITabBarDelegate,AGSMapViewLayerDelegate,AGSMapViewCalloutDelegate,UITextViewDelegate>
 
 @property (nonatomic, strong) IBOutlet UITabBar *bar;
 @property (nonatomic, strong) IBOutlet AGSMapView *mapView;
 @property (nonatomic, strong) AGSGoogleMapLayer *tileMapLayer;
 @property (nonatomic, strong) AGSGoogleMapLayer *wmsMapLayer;
 @property (nonatomic, strong) AGSDynamicMapServiceLayer *dynamicMapLayer;
+@property (nonatomic, strong) AGSSketchGraphicsLayer *sketchLayer;
 
 -(IBAction)gps:(id)sender;
 -(IBAction)list:(id)sender;
