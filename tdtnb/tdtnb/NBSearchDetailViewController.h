@@ -7,7 +7,9 @@
 //
 
 #import <UIKit/UIKit.h>
-
+#import "NBSearch.h"
 @interface NBSearchDetailViewController : UIViewController
+
+@property (nonatomic, strong) NBSearch *detail;
 
 @end

@@ -10,6 +10,7 @@
 #import "NBSearch.h"
 #import "dataHttpManager.h"
 #import "SVProgressHUD.h"
+#import "NBSearchDetailViewController.h"
 
 #define REGION @"无锡"
 #define RADIUS 3000
@@ -35,7 +36,6 @@
 
 -(void)viewWillAppear:(BOOL)animated{
     [dataHttpManager getInstance].delegate = self;
-    [self doSearch];
 }
 
 -(void)viewWillDisappear:(BOOL)animated{
@@ -49,11 +49,11 @@
     if ([[[UIDevice currentDevice] systemVersion] floatValue] >= 7) {
         self.edgesForExtendedLayout = UIRectEdgeNone;
     }
-
     _tableList = [[NSMutableArray alloc] initWithCapacity:10];
     _pageNum = PAGENUM;
     _pageSize = PAGESIZE;
     self.navigationItem.title = self.searchText;
+    [self doSearch];
     // Do any additional setup after loading the view.
 }
 
@@ -76,6 +76,7 @@
         cell.accessoryType = UITableViewCellAccessoryDisclosureIndicator;
     }
     cell.textLabel.backgroundColor = [UIColor clearColor];
+    cell.textLabel.font = [UIFont systemFontOfSize:16];
     cell.textLabel.text = searchItem.name;
     cell.imageView.image = [UIImage imageNamed:@"gpscenterpoint"];
     return cell;
@@ -83,6 +84,17 @@
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section{
     return [_tableList count];
 }
+
+- (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath{
+    
+    NBSearch *searchItem = [_tableList objectAtIndex:indexPath.row];
+    if(searchItem){
+        NBSearchDetailViewController *detailViewController = [[NBSearchDetailViewController alloc] initWithNibName:@"NBSearchDetailViewController" bundle:nil];
+        detailViewController.detail = searchItem;
+        [self.navigationController pushViewController:detailViewController animated:YES];
+    }
+}
+
 #pragma mark -dataHttpDelegate
 
 -(void)doSearch{
