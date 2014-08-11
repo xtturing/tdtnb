@@ -9,7 +9,7 @@
 #import <Foundation/Foundation.h>
 #import "NSDictionaryAdditions.h"
 
-@interface NBSearch : NSObject
+@interface NBSearch : NSObject<NSCoding>
 
 @property (nonatomic, strong) NSString *name;
 @property (nonatomic, strong) NSString *location;

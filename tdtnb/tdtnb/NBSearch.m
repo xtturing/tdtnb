@@ -26,5 +26,24 @@
 {
 	return [[NBSearch alloc] initWithJsonDictionary:dic];
 }
+-(void)encodeWithCoder:(NSCoder *)aCoder{
+    [aCoder encodeObject:_name forKey:@"name"];
+    [aCoder encodeObject:_location forKey:@"location"];
+    [aCoder encodeObject:_address forKey:@"address"];
+    [aCoder encodeObject:_street_id forKey:@"street_id"];
+    [aCoder encodeObject:_telephone forKey:@"telephone"];
+    [aCoder encodeObject:_uid forKey:@"uid"];
+}
+- (id)initWithCoder:(NSCoder *)aDecoder{
+    if (self = [super init])  {
+         _name=[aDecoder decodeObjectForKey:@"name"];
+         _location=[aDecoder decodeObjectForKey:@"location"];
+         _address=[aDecoder decodeObjectForKey:@"address"];
+         _street_id=[aDecoder decodeObjectForKey:@"street_id"];
+         _telephone=[aDecoder decodeObjectForKey:@"telephone"];
+         _uid=[aDecoder decodeObjectForKey:@"uid"];
+    }
+    return self;
+}
 
 @end

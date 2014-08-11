@@ -197,6 +197,7 @@
         case 1001:
         {
             [self.navigationController pushViewController:self.nearSearchViewController animated:YES];
+            [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(gpsPointInMap:) name:@"SearchDetailGPSPoint" object:nil];
         }
             break;
         case 1002:
@@ -287,6 +288,10 @@
 }
 -(IBAction)zoomOut:(id)sender{
     [self.mapView zoomOut:YES];
+}
+
+- (void)gpsPointInMap:(id)notic{
+    
 }
 
 #pragma mark -init

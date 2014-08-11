@@ -101,7 +101,12 @@
         btn1.frame = CGRectMake(0, 0, 100, 44);
         [btn1 addTarget:self action:@selector(gpsPoint:) forControlEvents:UIControlEventTouchUpInside];
         [_viewCell addSubview:btn1];
-        UIButton *btn2 = [self addButton:@"favPoint" title:@"收藏"];
+        UIButton *btn2 = nil;
+        if([self hasFavoritePoint]){
+           btn2 = [self addButton:@"favPoint" title:@"已收藏"];
+        }else{
+            btn2 = [self addButton:@"favPoint" title:@"收藏"];
+        }
         btn2.frame = CGRectMake(100, 0, 100, 44);
         [btn2 addTarget:self action:@selector(favPoint:) forControlEvents:UIControlEventTouchUpInside];
         [_viewCell addSubview:btn2];
@@ -160,17 +165,29 @@
 }
 
 - (void)gpsPoint:(id)sender{
-    
+    [[NSNotificationCenter defaultCenter] postNotificationName:@"SearchDetailGPSPoint" object:nil userInfo:[NSDictionary dictionaryWithObject:_detail forKey:@"detail"]];
+    [self.navigationController popToRootViewControllerAnimated:YES];
 }
 
 - (void)favPoint:(id)sender{
     UIButton *btn = (UIButton *)sender;
     [btn setTitle:@"已收藏" forState:UIControlStateNormal];
     btn.enabled = NO;
+    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+        NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
+        NSArray *array = [defaults objectForKey:@"FAVORITES_POINT"];
+        if(array == nil){
+            array = [[NSMutableArray alloc] init];
+        }
+        NSMutableArray *mArray = [NSMutableArray arrayWithArray:array];
+        NSData *object = [NSKeyedArchiver archivedDataWithRootObject:_detail];
+        [mArray addObject:object];
+        [[NSUserDefaults standardUserDefaults] setObject:(NSArray *)mArray forKey:@"FAVORITES_POINT" ];
+        [[NSUserDefaults standardUserDefaults] synchronize];
+    });
 }
-- (void)sharePoint:(id)sender{
-    
-}
+- (void)sharePoint:(id)sender{}
+
 - (void)nearSearch:(id)sender{
     
     UIButton *btn = (UIButton *)sender;
@@ -181,5 +198,10 @@
         searchViewController.location = @"39.915,116.404";
         [self.navigationController pushViewController:searchViewController animated:YES];
     }
+}
+
+- (BOOL)hasFavoritePoint{
+    
+    return NO;
 }
 @end
