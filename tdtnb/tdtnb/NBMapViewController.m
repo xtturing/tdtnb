@@ -192,6 +192,11 @@
 
 - (void)tabBar:(UITabBar *)tabBar didSelectItem:(UITabBarItem *)item{
     [_toolView removeFromSuperview];
+    self.sketchLayer = nil;
+    self.sketchLayer.geometry = nil;
+    self.mapView.touchDelegate = nil;
+    [self.mapView removeMapLayerWithName:@"sketchLayer"];
+    [self.mapView.callout removeFromSuperview];
     [[NSNotificationCenter defaultCenter] removeObserver:self name:@"GeometryChanged" object:nil];
     switch (item.tag) {
         case 1001:
@@ -213,6 +218,10 @@
         case 1004:
         {
             [self.mapView addSubview:self.toolView];
+            self.sketchLayer = [AGSSketchGraphicsLayer graphicsLayer];
+            self.sketchLayer.geometry = [[AGSMutablePolyline alloc] initWithSpatialReference:self.mapView.spatialReference];
+            [self.mapView addMapLayer:self.sketchLayer withName:@"sketchLayer"];
+            self.mapView.touchDelegate = self.sketchLayer;
             [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(respondToGeomChanged:) name:@"GeometryChanged" object:nil];
             // Set the default measures and units
             _distance = 0;
@@ -361,6 +370,7 @@
         case 105:
         {
             [self.sketchLayer clear];
+            [self.mapView.callout removeFromSuperview];
         }
             break;
             
@@ -373,10 +383,7 @@
 -(void) mapViewDidLoad:(AGSMapView*)mapView {
     // comment to disable the GPS on start up
    [self.mapView.gps start];
-    self.sketchLayer = [AGSSketchGraphicsLayer graphicsLayer];
-    self.sketchLayer.geometry = [[AGSMutablePolyline alloc] initWithSpatialReference:self.mapView.spatialReference];
-    [self.mapView addMapLayer:self.sketchLayer withName:@"sketchLayer"];
-    self.mapView.touchDelegate = self.sketchLayer;
+    
 }
 
 - (void)snopShot{

@@ -32,15 +32,9 @@
     }
     self.navigationItem.title = @"离线地图";
     
-    UIButton *voiceBtn = [UIButton buttonWithType:UIButtonTypeSystem];
-    voiceBtn.frame = CGRectMake(0, 0, 80, 40);
-    voiceBtn.titleLabel.font = [UIFont systemFontOfSize:16];
-    [voiceBtn setTitle:@"下载管理" forState:UIControlStateNormal];
-    [voiceBtn addTarget:self action:@selector(downloadManager) forControlEvents:UIControlEventTouchUpInside];
-    
-    voiceBtn.enabled = NO;
-    UIBarButtonItem *right = [[UIBarButtonItem alloc] initWithCustomView:voiceBtn];
+    UIBarButtonItem *right = [[UIBarButtonItem alloc] initWithTitle:@"下载管理" style:UIBarButtonItemStylePlain target:self action:@selector(downloadManager)];
     self.navigationItem.rightBarButtonItem = right;
+    self.navigationItem.rightBarButtonItem.enabled = NO;
     // Do any additional setup after loading the view from its nib.
 }
 
