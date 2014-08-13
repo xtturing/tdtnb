@@ -37,14 +37,9 @@
     segment.segmentedControlStyle = UISegmentedControlStyleBar;
     self.navigationItem.titleView = segment;
     
-    UIButton *voiceBtn = [UIButton buttonWithType:UIButtonTypeSystem];
-    voiceBtn.frame = CGRectMake(0, 0, 80, 40);
-    voiceBtn.titleLabel.font = [UIFont systemFontOfSize:16];
-    [voiceBtn setTitle:@"详情列表" forState:UIControlStateNormal];
-    
-    voiceBtn.enabled = NO;
-    UIBarButtonItem *right = [[UIBarButtonItem alloc] initWithCustomView:voiceBtn];
+    UIBarButtonItem *right = [[UIBarButtonItem alloc]  initWithTitle:@"详情列表" style:UIBarButtonItemStylePlain target:self action:@selector(detailAction)];
     self.navigationItem.rightBarButtonItem = right;
+    self.navigationItem.rightBarButtonItem.enabled = NO;
     
     self.mapView.layerDelegate = self;
 	
@@ -58,6 +53,10 @@
 {
     [super didReceiveMemoryWarning];
     // Dispose of any resources that can be recreated.
+}
+
+- (void)detailAction{
+    
 }
 - (void)addTileLayer{
     AGSGoogleMapLayer *tileMapLayer=[[AGSGoogleMapLayer alloc] initWithGoogleMapSchema:kTiledNB tdPath:KTiledTDT envelope:[AGSEnvelope envelopeWithXmin:119.65171432515596 ymin:29.021148681921858 xmax:123.40354537984406  ymax:30.441131592078335  spatialReference:self.mapView.spatialReference] level:@"9"];

@@ -104,6 +104,7 @@
         UIButton *btn2 = nil;
         if([self hasFavoritePoint]){
            btn2 = [self addButton:@"favPoint" title:@"已收藏"];
+           btn2.enabled = NO;
         }else{
             btn2 = [self addButton:@"favPoint" title:@"收藏"];
         }
@@ -111,6 +112,7 @@
         [btn2 addTarget:self action:@selector(favPoint:) forControlEvents:UIControlEventTouchUpInside];
         [_viewCell addSubview:btn2];
         UIButton *btn3 = [self addButton:@"sharePoint" title:@"分享"];
+        btn3.enabled = NO;
         btn3.frame = CGRectMake(200, 0, 100, 44);
         [btn3 addTarget:self action:@selector(sharePoint:) forControlEvents:UIControlEventTouchUpInside];
         [_viewCell addSubview:btn3];
@@ -182,8 +184,8 @@
         NSMutableArray *mArray = [NSMutableArray arrayWithArray:array];
         NSData *object = [NSKeyedArchiver archivedDataWithRootObject:_detail];
         [mArray addObject:object];
-        [[NSUserDefaults standardUserDefaults] setObject:(NSArray *)mArray forKey:@"FAVORITES_POINT" ];
-        [[NSUserDefaults standardUserDefaults] synchronize];
+        [defaults setObject:(NSArray *)mArray forKey:@"FAVORITES_POINT" ];
+        [defaults synchronize];
     });
 }
 - (void)sharePoint:(id)sender{}
@@ -201,7 +203,17 @@
 }
 
 - (BOOL)hasFavoritePoint{
-    
+    NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
+    NSArray *array = [defaults objectForKey:@"FAVORITES_POINT"];
+    if(array == nil){
+        return NO;
+    }
+    for(NSData *data in array){
+        NBSearch *detail = [NSKeyedUnarchiver unarchiveObjectWithData:data ];
+        if([detail.uid isEqualToString:_detail.uid] ){
+            return YES;
+        }
+    }
     return NO;
 }
 @end

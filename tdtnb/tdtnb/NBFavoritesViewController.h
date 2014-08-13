@@ -10,4 +10,6 @@
 
 @interface NBFavoritesViewController : UIViewController
 
+@property(nonatomic, strong) IBOutlet UITableView *tableView;
+
 @end
