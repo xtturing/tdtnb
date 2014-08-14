@@ -12,7 +12,7 @@
 @interface NBSearch : NSObject<NSCoding>
 
 @property (nonatomic, strong) NSString *name;
-@property (nonatomic, strong) NSString *location;
+@property (nonatomic, strong) NSDictionary *location;
 @property (nonatomic, strong) NSString *address;
 @property (nonatomic, strong) NSString *street_id;
 @property (nonatomic, strong) NSString *telephone;

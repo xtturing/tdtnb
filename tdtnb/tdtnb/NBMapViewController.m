@@ -17,6 +17,7 @@
 #import "NBSearch.h"
 #import "NBSearchTableViewController.h"
 #import "CLLocation+Sino.h"
+#import "NBSearchDetailViewController.h"
 
 //contants for data layers
 #define kTiledNB @"http://60.190.2.120/wmts/nbmapall?service=WMTS&request=GetTile&version=1.0.0&layer=0&style=default&tileMatrixSet=nbmap&format=image/png&TILEMATRIX=%d&TILEROW=%d&TILECOL=%d"
@@ -29,7 +30,7 @@
 
 #define kDynamicNB @"http://www.nbmap.gov.cn/ArcGIS/rest/services/nbdxx/MapServer"
 
-@interface NBMapViewController ()<toolDelegate,UISearchBarDelegate,AGSMapViewLayerDelegate,SpeechToTextModuleDelegate>{
+@interface NBMapViewController ()<toolDelegate,UISearchBarDelegate,AGSMapViewLayerDelegate,SpeechToTextModuleDelegate,AGSInfoTemplateDelegate>{
     UITextField *fakeTextField;
     double _distance;
     double _area;
@@ -133,9 +134,15 @@
     }
     self.bar.delegate = self;
     self.mapView.layerDelegate = self;
+     self.mapView.calloutDelegate=self;
     [self addTileLayer];
     [self zooMapToLevel:13 withCenter:[AGSPoint pointWithX:121.55629730245123 y:29.874820709509887 spatialReference:self.mapView.spatialReference]];
     // Do any additional setup after loading the view from its nib.
+    self.graphicsLayer = [AGSGraphicsLayer graphicsLayer];
+	[self.mapView addMapLayer:self.graphicsLayer withName:@"graphicsLayer"];
+    
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(gpsPointInMap:) name:@"SearchDetailGPSPoint" object:nil];
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(searchPointsInMap:) name:@"searchPointsInMap" object:nil];
 }
 
 - (void)didReceiveMemoryWarning
@@ -202,7 +209,6 @@
         case 1001:
         {
             [self.navigationController pushViewController:self.nearSearchViewController animated:YES];
-            [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(gpsPointInMap:) name:@"SearchDetailGPSPoint" object:nil];
         }
             break;
         case 1002:
@@ -266,6 +272,14 @@
         searchViewController.searchText = _searchBar.text;
         searchViewController.searchType = AFKeySearch;
         [self.navigationController pushViewController:searchViewController animated:YES];
+    }else{
+        UIAlertView *alert;
+        alert = [[UIAlertView alloc]
+                 initWithTitle:@"天地图宁波"
+                 message:@"请在查询框输入关键字"
+                 delegate:nil cancelButtonTitle:nil
+                 otherButtonTitles:@"确定", nil];
+        [alert show];
     }
 
 }
@@ -299,8 +313,58 @@
     [self.mapView zoomOut:YES];
 }
 
-- (void)gpsPointInMap:(id)notic{
+- (void)gpsPointInMap:(NSNotification *)notic{
+    NBSearch *detail = [notic.userInfo objectForKey:@"detail"];
+    AGSPictureMarkerSymbol * dian = [AGSPictureMarkerSymbol pictureMarkerSymbolWithImageNamed:@"gpscenterpoint"];
+    AGSPoint *point =	[AGSPoint pointWithX:[[detail.location objectForKey:@"lng"] floatValue]  y: [[detail.location objectForKey:@"lat"] floatValue] spatialReference:nil];
+    if(point.x == 0 || point.y == 0 ){
+        return;
+    }
+    NSArray *tipkey=[[NSArray alloc]initWithObjects:@"detail",@"title",@"object",nil];
+    NSArray *tipvalue=[[NSArray alloc]initWithObjects:detail.address,detail.name,detail,nil];
+    NSMutableDictionary * tips=[[NSMutableDictionary alloc]initWithObjects:tipvalue forKeys:tipkey];
+    AGSGraphic * pointgra= nil;
+    pointgra = [AGSGraphic graphicWithGeometry:point symbol:nil attributes:tips infoTemplateDelegate:self];
+    dian.yoffset=16;
+    pointgra.symbol = dian;
+    [self.graphicsLayer addGraphic:pointgra];
+    self.mapView.callout.customView = nil;
+    self.mapView.callout.title = detail.name;
+    self.mapView.callout.detail = detail.address;
+    self.mapView.callout.titleColor=[UIColor whiteColor];
+    self.mapView.callout.autoAdjustWidth=YES;
+    self.mapView.callout.cornerRadius=2;
+    self.mapView.callout.accessoryButtonHidden = NO;
+    self.mapView.callout.accessoryButtonImage = [UIImage imageNamed:@"b3.png"];
     
+    [self.mapView showCalloutAtPoint:point forGraphic:pointgra animated:YES];
+    
+    [self.mapView centerAtPoint:point animated:YES];
+    [self.graphicsLayer dataChanged];
+}
+
+-(void)searchPointsInMap:(NSNotification *)notic{
+    [self.graphicsLayer removeAllGraphics];
+    
+    NSMutableArray *searchList = [notic.userInfo objectForKey:@"searchList"];
+    for (NBSearch *detail in searchList) {
+        AGSGraphic * pointgra= nil;
+        AGSPoint *point =	[AGSPoint pointWithX:[[detail.location objectForKey:@"lng"] floatValue]  y: [[detail.location objectForKey:@"lat"] floatValue] spatialReference:nil];
+        if(point.x == 0 || point.y == 0 ){
+            return;
+        }
+        NSArray *tipkey=[[NSArray alloc]initWithObjects:@"detail",@"title",@"object",nil];
+        NSArray *tipvalue=[[NSArray alloc]initWithObjects:detail.address,detail.name,detail,nil];
+        NSMutableDictionary * tips=[[NSMutableDictionary alloc]initWithObjects:tipvalue forKeys:tipkey];
+        
+        AGSPictureMarkerSymbol * dian = [AGSPictureMarkerSymbol pictureMarkerSymbolWithImageNamed:@"point"];
+        pointgra = [AGSGraphic graphicWithGeometry:point symbol:nil attributes:tips infoTemplateDelegate:self];
+        dian.yoffset=19;
+        pointgra.symbol = dian;
+        [self.graphicsLayer addGraphic:pointgra];
+        [self.graphicsLayer dataChanged];
+        [self zooMapToLevel:10 withCenter:point];
+    }
 }
 
 #pragma mark -init
@@ -582,7 +646,26 @@
 #pragma mark - AGSMapViewCalloutDelegate
 
 - (BOOL)mapView:(AGSMapView *)mapView shouldShowCalloutForGraphic:(AGSGraphic *)graphic{
+    if([[graphic.attributes objectForKey:@"object"] isKindOfClass:[NBSearch class]]){
+        NBSearch *detail = (NBSearch *)[graphic.attributes objectForKey:@"object"];
+        self.mapView.callout.customView = nil;
+        self.mapView.callout.title = detail.name;
+        self.mapView.callout.detail = detail.address;
+        self.mapView.callout.titleColor=[UIColor whiteColor];
+        self.mapView.callout.autoAdjustWidth=YES;
+        self.mapView.callout.cornerRadius=2;
+        self.mapView.callout.accessoryButtonHidden = NO;
+        self.mapView.callout.accessoryButtonImage = [UIImage imageNamed:@"b3.png"];
+    }
     return YES;
+}
+- (void)mapView:(AGSMapView *)mapView didClickCalloutAccessoryButtonForGraphic:(AGSGraphic *)graphic{
+    
+    if([[graphic.attributes objectForKey:@"object"] isKindOfClass:[NBSearch class]]){
+        NBSearchDetailViewController *detailViewController = [[NBSearchDetailViewController alloc] initWithNibName:@"NBSearchDetailViewController" bundle:nil];
+        detailViewController.detail = [graphic.attributes objectForKey:@"object"];
+        [self.navigationController pushViewController:detailViewController animated:YES];
+    }
 }
 
 #pragma mark - UITextViewDelegate Methods

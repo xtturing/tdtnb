@@ -7,6 +7,8 @@
 //
 
 #import "NBLineServiceViewController.h"
+#import <CoreLocation/CoreLocation.h> 
+
 //contants for data layers
 #define kTiledNB @"http://60.190.2.120/wmts/nbmapall?service=WMTS&request=GetTile&version=1.0.0&layer=0&style=default&tileMatrixSet=nbmap&format=image/png&TILEMATRIX=%d&TILEROW=%d&TILECOL=%d"
 #define KTiledTDT @"http://t0.tianditu.com/vec_c/wmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=vec&STYLE=default&TILEMATRIXSET=c&TILEMATRIX=%d&TILEROW=%d&TILECOL=%d&FORMAT=tiles"
@@ -70,4 +72,14 @@
     [self.mapView zoomToResolution:lod.resolution withCenterPoint:point animated:YES];
 }
 
+- (NSString *)pointToAddress:(CLLocation *)location{
+    CLGeocoder *geocoder=[[CLGeocoder alloc]init];
+    __block NSString *address= nil;
+    [geocoder reverseGeocodeLocation:location completionHandler:^(NSArray *placemark,NSError *error)
+     {
+         CLPlacemark *mark=[placemark objectAtIndex:0];
+         address = [NSString stringWithFormat:@"%@%@%@",mark.subLocality,mark.thoroughfare,mark.subThoroughfare];
+     } ];
+    return address;
+}
 @end

@@ -17,6 +17,7 @@
 @property (nonatomic, strong) AGSGoogleMapLayer *wmsMapLayer;
 @property (nonatomic, strong) AGSDynamicMapServiceLayer *dynamicMapLayer;
 @property (nonatomic, strong) AGSSketchGraphicsLayer *sketchLayer;
+@property (nonatomic, strong) AGSGraphicsLayer *graphicsLayer;
 
 -(IBAction)gps:(id)sender;
 -(IBAction)list:(id)sender;

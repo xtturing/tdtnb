@@ -53,6 +53,9 @@
     _pageNum = PAGENUM;
     _pageSize = PAGESIZE;
     self.navigationItem.title = self.searchText;
+    UIBarButtonItem *right = [[UIBarButtonItem alloc]  initWithTitle:@"全部定位" style:UIBarButtonItemStylePlain target:self action:@selector(pointsInMap)];
+    self.navigationItem.rightBarButtonItem = right;
+    self.navigationItem.rightBarButtonItem.enabled = NO;
     [self doSearch];
     // Do any additional setup after loading the view.
 }
@@ -112,20 +115,29 @@
 
 - (void)didGetFailed{
    [SVProgressHUD dismiss];
+    self.navigationItem.rightBarButtonItem.enabled = NO;
     UIAlertView *view = [[UIAlertView alloc] initWithTitle:@"天地图宁波" message:@"查询发生异常" delegate:nil cancelButtonTitle:@"确定" otherButtonTitles:nil, nil];
     [view show];
+    
 }
 
 -(void)didGetSearchList:(NSArray *)searchList{
     [SVProgressHUD dismiss];
     [_tableList addObjectsFromArray:searchList];
+    self.navigationItem.rightBarButtonItem.enabled = YES;
     [self.tableView reloadData];
 }
 
 -(void)didGetRadiusSearchList:(NSArray *)radiusList{
     [SVProgressHUD dismiss];
     [_tableList addObjectsFromArray:radiusList];
+    self.navigationItem.rightBarButtonItem.enabled = YES;
     [self.tableView reloadData];
+}
+
+-(void)pointsInMap{
+    [[NSNotificationCenter defaultCenter] postNotificationName:@"searchPointsInMap" object:nil userInfo:[NSDictionary dictionaryWithObject:_tableList forKey:@"searchList"]];
+    [self.navigationController popToRootViewControllerAnimated:YES];
 }
 
 - (void)refresh {
