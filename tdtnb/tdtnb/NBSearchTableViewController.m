@@ -75,13 +75,15 @@
     static NSString *reuseIdetify = @"TableViewCell";
     UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:reuseIdetify];
     if (!cell) {
-        cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:reuseIdetify];
+        cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleSubtitle reuseIdentifier:reuseIdetify];
         cell.accessoryType = UITableViewCellAccessoryDisclosureIndicator;
     }
     cell.textLabel.backgroundColor = [UIColor clearColor];
     cell.textLabel.font = [UIFont systemFontOfSize:16];
     cell.textLabel.text = searchItem.name;
-    cell.imageView.image = [UIImage imageNamed:@"gpscenterpoint"];
+    cell.detailTextLabel.text = searchItem.address;
+    cell.detailTextLabel.font = [UIFont systemFontOfSize:12];
+    cell.detailTextLabel.numberOfLines = 0;
     return cell;
 }
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section{
@@ -124,14 +126,18 @@
 -(void)didGetSearchList:(NSArray *)searchList{
     [SVProgressHUD dismiss];
     [_tableList addObjectsFromArray:searchList];
-    self.navigationItem.rightBarButtonItem.enabled = YES;
+    if([_tableList count]>0){
+        self.navigationItem.rightBarButtonItem.enabled = YES;
+    }
     [self.tableView reloadData];
 }
 
 -(void)didGetRadiusSearchList:(NSArray *)radiusList{
     [SVProgressHUD dismiss];
     [_tableList addObjectsFromArray:radiusList];
-    self.navigationItem.rightBarButtonItem.enabled = YES;
+    if([_tableList count]>0){
+        self.navigationItem.rightBarButtonItem.enabled = YES;
+    }
     [self.tableView reloadData];
 }
 
