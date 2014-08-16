@@ -12,6 +12,8 @@
 #import "JSON.h"
 #import "NBSearch.h"
 
+#define TIMEOUT 30
+
 static dataHttpManager * instance=nil;
 
 @implementation dataHttpManager
@@ -93,6 +95,8 @@ static dataHttpManager * instance=nil;
     NSURL  *url = [self generateURL:baseUrl params:params];
     ASIHTTPRequest *request = [[ASIHTTPRequest alloc] initWithURL:url];
     NSLog(@"url=%@",url);
+    [request setTimeOutSeconds:TIMEOUT];
+    [request setResponseEncoding:NSUTF8StringEncoding];
     [self setGetUserInfo:request withRequestType:AAGetSearchList];
     [_requestQueue addOperation:request];
 }
@@ -106,8 +110,66 @@ static dataHttpManager * instance=nil;
     NSString *baseUrl =[NSString  stringWithFormat:@"%@",HTTP_URL];
     NSURL  *url = [self generateURL:baseUrl params:params];
     ASIHTTPRequest *request = [[ASIHTTPRequest alloc] initWithURL:url];
+    [request setTimeOutSeconds:TIMEOUT];
+    [request setResponseEncoding:NSUTF8StringEncoding];
     NSLog(@"url=%@",url);
     [self setGetUserInfo:request withRequestType:AAGetRadiusList];
+    [_requestQueue addOperation:request];
+}
+- (void)letDoPostErrorWithMessage:(NSString *)message plottingScale:(NSString *)plottingScale point:(NSString *)point{
+    NSString *m = [NSString stringWithFormat:@"%@",message];
+    NSString *s = [NSString stringWithFormat:@"%@",plottingScale];
+    NSString *p = [NSString stringWithFormat:@"%@",point];
+    NSString *baseUrl =[NSString  stringWithFormat:@"%@",HTTP_ERRORURL];
+    NSURL  *url = [NSURL URLWithString:baseUrl];
+    ASIFormDataRequest *request = [ASIFormDataRequest requestWithURL:url];
+    [request setPostValue:@"admin" forKey:@"errorCorrector"];
+    [request setPostValue:s forKey:@"plottingScale"];
+    [request setPostValue:m forKey:@"errorCorrectInfo"];
+    [request setPostValue:@"0" forKey:@"errorcoreectObject"];
+    [request setPostValue:@"" forKey:@"telnum"];
+    [request setPostValue:p forKey:@"point"];
+    [request setPostValue:@"1" forKey:@"region"];
+    [request setTimeOutSeconds:TIMEOUT];
+    [request setDelegate:self];
+    [request setResponseEncoding:NSUTF8StringEncoding];
+    NSLog(@"url=%@",url);
+    [self setPostUserInfo:request withRequestType:AAPostError];
+    [request startAsynchronous];
+}
+
+//
+-(void)letDoLineSearchWithOrig:(NSString *)orig dest:(NSString *)dest style:(NSString *)style{
+    NSString *m = [NSString stringWithFormat:@"%@",orig];
+    NSString *s = [NSString stringWithFormat:@"%@",dest];
+    NSString *p = [NSString stringWithFormat:@"%@",style];
+    NSString *baseUrl =[NSString  stringWithFormat:@"%@/route.do",HTTP_SEARCH_URL];
+    NSURL  *url = [NSURL URLWithString:baseUrl];
+    ASIFormDataRequest *request = [ASIFormDataRequest requestWithURL:url];
+    [request setPostValue:m forKey:@"orig"];
+    [request setPostValue:s forKey:@"dest"];
+    [request setPostValue:p forKey:@"style"];
+    [request setPostValue:@"" forKey:@"mid"];
+    [request setTimeOutSeconds:TIMEOUT];
+    [request setResponseEncoding:NSUTF8StringEncoding];
+    [request setDelegate:self];
+    NSLog(@"url=%@",url);
+    [self setPostUserInfo:request withRequestType:AAGetLineSearch];
+    [request startAsynchronous];
+
+}
+//
+-(void)letDoBusSearchWithStartposition:(NSString *)startposition endposition:(NSString *)endposition linetype:(NSString *)linetype{
+    NSString *m = [NSString stringWithFormat:@"%@",startposition];
+    NSString *s = [NSString stringWithFormat:@"%@",endposition];
+    NSString *p = [NSString stringWithFormat:@"%@",linetype];
+    NSString *baseUrl =[NSString  stringWithFormat:@"%@/BuslineServlet.do?postStr=%@startposition:'%@',endposition:'%@',linetype:'%@'%@",HTTP_SEARCH_URL,@"%7b",m,s,p,@"%7d"];
+    NSURL  *url = [NSURL URLWithString:baseUrl];
+    ASIHTTPRequest *request = [[ASIHTTPRequest alloc] initWithURL:url];
+    [request setTimeOutSeconds:TIMEOUT];
+    [request setResponseEncoding:NSUTF8StringEncoding];
+    NSLog(@"url=%@",url);
+    [self setGetUserInfo:request withRequestType:AAGetBusSearch];
     [_requestQueue addOperation:request];
 }
 //继续添加
@@ -152,7 +214,7 @@ static dataHttpManager * instance=nil;
     NSDictionary *userInformation = [request userInfo];
     DataRequestType requestType = [[userInformation objectForKey:REQUEST_TYPE] intValue];
     NSString * responseString = [request responseString];
-    SBJsonParser    *parser     = [[SBJsonParser alloc] init];    
+    SBJsonParser *parser = [[SBJsonParser alloc] init];    
     id  returnObject = [parser objectWithString:responseString];
     NSDictionary *userInfo = nil;
     NSArray *userArr = nil;
@@ -193,6 +255,25 @@ static dataHttpManager * instance=nil;
             [_delegate didGetRadiusSearchList:statuesArr];
         }
     }
+    //
+    if(requestType == AAPostError){
+        NSString *string= [userInfo objectForKey:@"success"];
+        if ([_delegate respondsToSelector:@selector(didPostError:)]) {
+            if([string isEqualToString:@"false"]){
+                [_delegate didPostError:@"提交纠错信息异常"];
+            }else{
+                [_delegate didPostError:@"提交纠错信息成功"];
+            }
+        }
+    }
+    //
+    if(requestType == AAGetLineSearch){
+        
+    }
+    //
+    if(requestType == AAGetBusSearch){
+        
+    }
     
     //继续添加
     
@@ -204,5 +285,6 @@ static dataHttpManager * instance=nil;
 - (void)request:(ASIHTTPRequest *)request willRedirectToURL:(NSURL *)newURL {
     NSLog(@"请求将要跳转");
 }
+
 
 @end

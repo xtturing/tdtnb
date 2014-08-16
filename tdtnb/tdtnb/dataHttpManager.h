@@ -12,14 +12,17 @@
 
 #define HTTP_URL              @"http://api.map.baidu.com/place/v2/search"
 #define HTTP_SEARCH_URL       @"http://api.tianditu.com/api/api-new"
-#define HTTP_ERRORURL         @"http://58.215.201.110:9000/mobile/new"
-#define HTTP_SEARCH           @"http://58.215.201.110:9000/baiduQuery"
-#define HTTP_DOWNLOAD         @"http://58.215.201.110:9080/tpkService/TpkFileList"
+#define HTTP_ERRORURL         @"http://60.190.2.120:10087/mobile/new/"
+#define HTTP_SEARCH           @"http://60.190.2.120:10087/baiduQuery"
+#define HTTP_DOWNLOAD         @"http://60.190.2.120/tpkService/TpkFileList"
 #define REQUEST_TYPE          @"requestType"
 
 typedef enum {
     AAGetSearchList = 0,           //获取当前区域列表
     AAGetRadiusList,
+    AAPostError,
+    AAGetLineSearch,
+    AAGetBusSearch,
     //继续添加
     
 }DataRequestType;
@@ -37,6 +40,14 @@ typedef enum {
 -(void)didGetSearchList:(NSArray*)searchList;
 //
 -(void)didGetRadiusSearchList:(NSArray *)radiusList;
+//
+- (void)didPostError:(NSString *)string;
+//
+-(void)didGetLineSearchList:(NSArray *)lineList;
+
+//
+-(void)didgetBusSearchList:(NSArray *)busList;
+
 //继续添加
 @end
 
@@ -58,6 +69,17 @@ typedef enum {
 
 //
 -(void)letDoRadiusSearchWithQuery:(NSString *)query location:(NSString *)location  radius:(int)radius scope:(int)scope pageSize:(int)size pageNum:(int)num;
+
+//
+- (void)letDoPostErrorWithMessage:(NSString *)message plottingScale:(NSString *)plottingScale point:(NSString *)point;
+
+//
+
+-(void)letDoLineSearchWithOrig:(NSString *)orig dest:(NSString *)dest style:(NSString *)style;
+
+//
+
+-(void)letDoBusSearchWithStartposition:(NSString *)startposition endposition:(NSString *)endposition linetype:(NSString *)linetype;
 
 //继续添加
 @end

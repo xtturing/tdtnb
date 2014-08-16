@@ -8,13 +8,14 @@
 
 #import "NBLineServiceViewController.h"
 #import <CoreLocation/CoreLocation.h> 
+#import "dataHttpManager.h"
 
 //contants for data layers
 #define kTiledNB @"http://60.190.2.120/wmts/nbmapall?service=WMTS&request=GetTile&version=1.0.0&layer=0&style=default&tileMatrixSet=nbmap&format=image/png&TILEMATRIX=%d&TILEROW=%d&TILECOL=%d"
 #define KTiledTDT @"http://t0.tianditu.com/vec_c/wmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=vec&STYLE=default&TILEMATRIXSET=c&TILEMATRIX=%d&TILEROW=%d&TILECOL=%d&FORMAT=tiles"
 #define KTiledTDTLabel  @"http://t0.tianditu.com/cva_c/wmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=cva&STYLE=default&TILEMATRIXSET=c&TILEMATRIX=%d&TILEROW=%d&TILECOL=%d&FORMAT=tiles"
 
-@interface NBLineServiceViewController ()<AGSMapViewLayerDelegate>
+@interface NBLineServiceViewController ()<AGSMapViewLayerDelegate,dataHttpDelegate>
 
 @end
 
@@ -34,10 +35,15 @@
     if ([[[UIDevice currentDevice] systemVersion] floatValue] >= 7) {
         self.edgesForExtendedLayout = UIRectEdgeNone;
     }
-    UISegmentedControl *segment = [[UISegmentedControl alloc] initWithItems:[NSArray arrayWithObjects:@"公交",@"自驾", nil]];
-    segment.frame = CGRectMake(0, 7, 140, 30);
-    segment.segmentedControlStyle = UISegmentedControlStyleBar;
-    self.navigationItem.titleView = segment;
+    _segment.selectedSegmentIndex = 1;
+    [_segment addTarget:self action:@selector(segmentStyleAction:) forControlEvents:UIControlEventValueChanged];
+    [_segmentPoint addTarget:self action:@selector(segmentPointAction:) forControlEvents:UIControlEventValueChanged];
+    UISegmentedControl *seg = [[UISegmentedControl alloc] initWithItems:[NSArray arrayWithObjects:@"公交",@"自驾", nil]];
+    seg.frame = CGRectMake(0, 7, 140, 30);
+    seg.segmentedControlStyle = UISegmentedControlStyleBar;
+    seg.selectedSegmentIndex = 0;
+    [seg addTarget:self action:@selector(segmentAction:) forControlEvents:UIControlEventValueChanged];
+    self.navigationItem.titleView = seg;
     
     UIBarButtonItem *right = [[UIBarButtonItem alloc]  initWithTitle:@"详情列表" style:UIBarButtonItemStylePlain target:self action:@selector(detailAction)];
     self.navigationItem.rightBarButtonItem = right;
@@ -49,7 +55,14 @@
     [self zooMapToLevel:13 withCenter:[AGSPoint pointWithX:121.55629730245123 y:29.874820709509887 spatialReference:self.mapView.spatialReference]];
 }
 
+- (void)viewWillAppear:(BOOL)animated{
+    [super viewWillAppear:animated];
+    [dataHttpManager getInstance].delegate = self;
+}
 
+-(void)viewWillDisappear:(BOOL)animated{
+    [dataHttpManager getInstance].delegate =  nil;
+}
 
 - (void)didReceiveMemoryWarning
 {
@@ -82,4 +95,33 @@
      } ];
     return address;
 }
+-(void)segmentAction:(UISegmentedControl *)Seg{
+    if(Seg.selectedSegmentIndex == 0){
+        [_segment setTitle:@"较快捷" forSegmentAtIndex:0];
+        [_segment setTitle:@"少换乘" forSegmentAtIndex:1];
+        [_segment setTitle:@"少步行" forSegmentAtIndex:2];
+    }else{
+        [_segment setTitle:@"最快线路" forSegmentAtIndex:0];
+        [_segment setTitle:@"最短线路" forSegmentAtIndex:1];
+        [_segment setTitle:@"少走高速" forSegmentAtIndex:2];
+    }
+    _segment.selectedSegmentIndex = 1;
+}
+-(void)segmentStyleAction:(UISegmentedControl *)Seg{
+    
+}
+-(void)segmentPointAction:(UISegmentedControl *)Seg{
+    [[dataHttpManager getInstance] letDoBusSearchWithStartposition:@"116.39846,39.89814" endposition:@"116.39022,39.89017" linetype:@"1"];
+}
+
+#pragma -mark
+
+-(void)didGetLineSearchList:(NSArray *)lineList{
+    
+}
+
+- (void)didgetBusSearchList:(NSArray *)busList{
+    
+}
+
 @end

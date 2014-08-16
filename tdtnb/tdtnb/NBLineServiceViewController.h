@@ -12,4 +12,6 @@
 @interface NBLineServiceViewController : UIViewController
 
 @property (nonatomic, strong) IBOutlet AGSMapView *mapView;
+@property (nonatomic, strong) IBOutlet UISegmentedControl *segment;
+@property (nonatomic, strong) IBOutlet UISegmentedControl *segmentPoint;
 @end

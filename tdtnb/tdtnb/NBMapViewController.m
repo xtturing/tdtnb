@@ -18,6 +18,7 @@
 #import "NBSearchTableViewController.h"
 #import "CLLocation+Sino.h"
 #import "NBSearchDetailViewController.h"
+#import "dataHttpManager.h"
 
 //contants for data layers
 #define kTiledNB @"http://60.190.2.120/wmts/nbmapall?service=WMTS&request=GetTile&version=1.0.0&layer=0&style=default&tileMatrixSet=nbmap&format=image/png&TILEMATRIX=%d&TILEROW=%d&TILECOL=%d"
@@ -30,12 +31,14 @@
 
 #define kDynamicNB @"http://www.nbmap.gov.cn/ArcGIS/rest/services/nbdxx/MapServer"
 
-@interface NBMapViewController ()<toolDelegate,UISearchBarDelegate,AGSMapViewLayerDelegate,SpeechToTextModuleDelegate,AGSInfoTemplateDelegate>{
+@interface NBMapViewController ()<toolDelegate,UISearchBarDelegate,AGSMapViewLayerDelegate,SpeechToTextModuleDelegate,AGSInfoTemplateDelegate,dataHttpDelegate>{
     UITextField *fakeTextField;
     double _distance;
     double _area;
     AGSSRUnit _distanceUnit;
     AGSAreaUnits _areaUnit;
+    AGSPoint *errorPoint;
+    int errorScale;
 }
 
 @property(nonatomic,strong) NBNearSearchViewController *nearSearchViewController;
@@ -153,6 +156,11 @@
 
 - (void)viewWillAppear:(BOOL)animated{
     [super viewWillAppear:animated];
+    [dataHttpManager getInstance].delegate = self;
+}
+
+-(void)viewWillDisappear:(BOOL)animated{
+    [dataHttpManager getInstance].delegate =  nil;
 }
 
 - (void)dealloc{
@@ -624,10 +632,16 @@
 - (void)errorRecovery{
     AGSGeometry *sketchGeometry = self.sketchLayer.geometry;
     if ([sketchGeometry isKindOfClass:[AGSMutablePoint class]] && sketchGeometry.isValid){
-        AGSPoint *point = (AGSPoint *)sketchGeometry;
-        
+        errorPoint = (AGSPoint *)sketchGeometry;
+        AGSGoogleMapLayer *layer = (AGSGoogleMapLayer *)[self.mapView.mapLayers objectAtIndex:0];
+        for(AGSLOD *lod in layer.tileInfo.lods){
+            if(lod.resolution == self.mapView.resolution){
+                errorScale = lod.level;
+                break;
+            }
+        }
         self.mapView.callout.customView = self.textView;
-        [self.mapView showCalloutAtPoint:point];
+        [self.mapView showCalloutAtPoint:errorPoint];
     }
 }
 
@@ -692,7 +706,21 @@
 }
 
 - (void)sendErrorRecovery{
-    
+    if(_textView.text.length > 0 && errorScale > 0 && errorPoint.x != 0 && errorPoint.y != 0){
+        [[dataHttpManager getInstance] letDoPostErrorWithMessage:_textView.text plottingScale:[NSString stringWithFormat:@"%d",errorScale] point:[NSString stringWithFormat:@"%f,%f",errorPoint.x,errorPoint.y]];
+    }
 }
-
+#pragma mark 
+- (void)didPostError:(NSString *)string{
+    UIAlertView *alert;
+    alert = [[UIAlertView alloc]
+             initWithTitle:@"天地图宁波"
+             message:string
+             delegate:nil cancelButtonTitle:nil
+             otherButtonTitles:@"确定", nil];
+    [alert show];
+    self.sketchLayer.geometry = nil;
+    [self.sketchLayer removeAllGraphics];
+    [self.mapView.callout removeFromSuperview];
+}
 @end

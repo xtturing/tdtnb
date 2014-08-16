@@ -8,6 +8,8 @@
         <placeholder placeholderIdentifier="IBFilesOwner" id="-1" userLabel="File's Owner" customClass="NBLineServiceViewController">
             <connections>
                 <outlet property="mapView" destination="bJ2-Vd-zL2" id="Icq-Dk-h9r"/>
+                <outlet property="segment" destination="eQI-Xo-7YS" id="bFu-Jo-z2g"/>
+                <outlet property="segmentPoint" destination="9p4-zY-9k9" id="r0P-vX-bCM"/>
                 <outlet property="view" destination="i5M-Pr-FkT" id="PXP-XU-VRm"/>
             </connections>
         </placeholder>
@@ -56,7 +58,7 @@
                                 <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
                             </state>
                         </button>
-                        <segmentedControl opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="top" apportionsSegmentWidthsByContent="YES" segmentControlStyle="bar" selectedSegmentIndex="0" id="9p4-zY-9k9">
+                        <segmentedControl opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="top" apportionsSegmentWidthsByContent="YES" segmentControlStyle="bar" id="9p4-zY-9k9">
                             <rect key="frame" x="0.0" y="105" width="320" height="30"/>
                             <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                             <segments>
