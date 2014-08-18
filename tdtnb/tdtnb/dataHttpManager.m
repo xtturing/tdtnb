@@ -146,14 +146,10 @@ static dataHttpManager * instance=nil;
     NSString *baseUrl =[NSString  stringWithFormat:@"%@/route.do",HTTP_SEARCH_URL];
     NSURL  *url = [NSURL URLWithString:baseUrl];
     ASIFormDataRequest *request = [ASIFormDataRequest requestWithURL:url];
-    [request setPostValue:m forKey:@"orig"];
-    [request setPostValue:s forKey:@"dest"];
-    [request setPostValue:p forKey:@"style"];
-    [request setPostValue:@"" forKey:@"mid"];
+    [request setPostValue:[NSString stringWithFormat:@"{'orig':'%@','dest':'%@','style':'%@'}",m,s,p] forKey:@"routeStr"];
     [request setTimeOutSeconds:TIMEOUT];
     [request setResponseEncoding:NSUTF8StringEncoding];
     [request setDelegate:self];
-    NSLog(@"url=%@",url);
     [self setPostUserInfo:request withRequestType:AAGetLineSearch];
     [request startAsynchronous];
 

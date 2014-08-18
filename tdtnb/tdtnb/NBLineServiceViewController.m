@@ -111,7 +111,8 @@
     
 }
 -(void)segmentPointAction:(UISegmentedControl *)Seg{
-    [[dataHttpManager getInstance] letDoBusSearchWithStartposition:@"116.39846,39.89814" endposition:@"116.39022,39.89017" linetype:@"1"];
+//    [[dataHttpManager getInstance] letDoBusSearchWithStartposition:@"116.39846,39.89814" endposition:@"116.39022,39.89017" linetype:@"1"];
+    [[dataHttpManager getInstance] letDoLineSearchWithOrig:@"116.3599,40.08882" dest:@"116.44985,40.06308" style:@"0"];
 }
 
 #pragma -mark
