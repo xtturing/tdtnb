@@ -13,7 +13,7 @@
 - (NBSearch *)initWithJsonDictionary:(NSDictionary*)dic {
 	if (self = [super init]) {
         _name=[dic getStringValueForKey:@"name" defaultValue:@""];
-        _location=[dic getStringValueForKey:@"location" defaultValue:@""];
+        _location=[dic objectForKey:@"location"];
         _address=[dic getStringValueForKey:@"address" defaultValue:@""];
         _street_id=[dic getStringValueForKey:@"street_id" defaultValue:@""];
         _telephone=[dic getStringValueForKey:@"telephone" defaultValue:@""];

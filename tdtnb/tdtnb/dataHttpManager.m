@@ -11,6 +11,8 @@
 #import "ASIFormDataRequest.h"
 #import "JSON.h"
 #import "NBSearch.h"
+#import "XMLReader.h"
+
 
 #define TIMEOUT 30
 
@@ -96,6 +98,7 @@ static dataHttpManager * instance=nil;
     ASIHTTPRequest *request = [[ASIHTTPRequest alloc] initWithURL:url];
     NSLog(@"url=%@",url);
     [request setTimeOutSeconds:TIMEOUT];
+    [request setDefaultResponseEncoding:NSUTF8StringEncoding];
     [request setResponseEncoding:NSUTF8StringEncoding];
     [self setGetUserInfo:request withRequestType:AAGetSearchList];
     [_requestQueue addOperation:request];
@@ -113,6 +116,7 @@ static dataHttpManager * instance=nil;
     [request setTimeOutSeconds:TIMEOUT];
     [request setResponseEncoding:NSUTF8StringEncoding];
     NSLog(@"url=%@",url);
+    [request setDefaultResponseEncoding:NSUTF8StringEncoding];
     [self setGetUserInfo:request withRequestType:AAGetRadiusList];
     [_requestQueue addOperation:request];
 }
@@ -132,6 +136,7 @@ static dataHttpManager * instance=nil;
     [request setPostValue:@"1" forKey:@"region"];
     [request setTimeOutSeconds:TIMEOUT];
     [request setDelegate:self];
+    [request setDefaultResponseEncoding:NSUTF8StringEncoding];
     [request setResponseEncoding:NSUTF8StringEncoding];
     NSLog(@"url=%@",url);
     [self setPostUserInfo:request withRequestType:AAPostError];
@@ -148,6 +153,7 @@ static dataHttpManager * instance=nil;
     ASIFormDataRequest *request = [ASIFormDataRequest requestWithURL:url];
     [request setPostValue:[NSString stringWithFormat:@"{'orig':'%@','dest':'%@','style':'%@'}",m,s,p] forKey:@"routeStr"];
     [request setTimeOutSeconds:TIMEOUT];
+    [request setDefaultResponseEncoding:NSUTF8StringEncoding];
     [request setResponseEncoding:NSUTF8StringEncoding];
     [request setDelegate:self];
     [self setPostUserInfo:request withRequestType:AAGetLineSearch];
@@ -162,6 +168,7 @@ static dataHttpManager * instance=nil;
     NSString *baseUrl =[NSString  stringWithFormat:@"%@/BuslineServlet.do?postStr=%@startposition:'%@',endposition:'%@',linetype:'%@'%@",HTTP_SEARCH_URL,@"%7b",m,s,p,@"%7d"];
     NSURL  *url = [NSURL URLWithString:baseUrl];
     ASIHTTPRequest *request = [[ASIHTTPRequest alloc] initWithURL:url];
+    [request setDefaultResponseEncoding:NSUTF8StringEncoding];
     [request setTimeOutSeconds:TIMEOUT];
     [request setResponseEncoding:NSUTF8StringEncoding];
     NSLog(@"url=%@",url);
@@ -212,6 +219,10 @@ static dataHttpManager * instance=nil;
     NSString * responseString = [request responseString];
     SBJsonParser *parser = [[SBJsonParser alloc] init];    
     id  returnObject = [parser objectWithString:responseString];
+    if(!returnObject && responseString){
+        NSError *parseError = nil;
+        returnObject= [XMLReader dictionaryForXMLString:responseString error:&parseError];
+    }
     NSDictionary *userInfo = nil;
     NSArray *userArr = nil;
     if ([returnObject isKindOfClass:[NSDictionary class]]) {
@@ -264,11 +275,27 @@ static dataHttpManager * instance=nil;
     }
     //
     if(requestType == AAGetLineSearch){
-        
+        NSDictionary *arr= [userInfo objectForKey:@"result"];
+        NBRoute *route = nil;
+        if([arr count] > 0){
+            route = [NBRoute routeWithJsonDictionary:arr];
+        }
+        if (_delegate && [_delegate respondsToSelector:@selector(didGetRoute:)] && route) {
+            [_delegate didGetRoute:route];
+        }
     }
     //
     if(requestType == AAGetBusSearch){
-        
+        NSArray *arr= [[[userInfo objectForKey:@"results"] objectAtIndex:0] objectForKey:@"lines"];
+        NSMutableArray  *statuesArr = [[NSMutableArray alloc]initWithCapacity:0];
+        for(NSDictionary *item in arr){
+            NBLine *line = [NBLine lineWithJsonDictionary:item];
+            [statuesArr addObject:line];
+        }
+        if ([_delegate respondsToSelector:@selector(didGetBusLines:)]) {
+            [_delegate didGetBusLines:statuesArr];
+        }
+
     }
     
     //继续添加

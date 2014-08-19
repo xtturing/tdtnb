@@ -9,6 +9,8 @@
 #import "ASIHTTPRequestDelegate.h"
 #import "StringUtil.h"
 #import "NSStringAdditions.h"
+#import "NBRoute.h"
+#import "NBLine.h"
 
 #define HTTP_URL              @"http://api.map.baidu.com/place/v2/search"
 #define HTTP_SEARCH_URL       @"http://api.tianditu.com/api/api-new"
@@ -43,10 +45,10 @@ typedef enum {
 //
 - (void)didPostError:(NSString *)string;
 //
--(void)didGetLineSearchList:(NSArray *)lineList;
+-(void)didGetRoute:(NBRoute *)route;
 
 //
--(void)didgetBusSearchList:(NSArray *)busList;
+-(void)didGetBusLines:(NSArray *)lineList;
 
 //继续添加
 @end

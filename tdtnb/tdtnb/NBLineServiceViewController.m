@@ -9,6 +9,8 @@
 #import "NBLineServiceViewController.h"
 #import <CoreLocation/CoreLocation.h> 
 #import "dataHttpManager.h"
+#import "NBRoute.h"
+#import "NBLine.h"
 
 //contants for data layers
 #define kTiledNB @"http://60.190.2.120/wmts/nbmapall?service=WMTS&request=GetTile&version=1.0.0&layer=0&style=default&tileMatrixSet=nbmap&format=image/png&TILEMATRIX=%d&TILEROW=%d&TILECOL=%d"
@@ -111,17 +113,17 @@
     
 }
 -(void)segmentPointAction:(UISegmentedControl *)Seg{
-//    [[dataHttpManager getInstance] letDoBusSearchWithStartposition:@"116.39846,39.89814" endposition:@"116.39022,39.89017" linetype:@"1"];
-    [[dataHttpManager getInstance] letDoLineSearchWithOrig:@"116.3599,40.08882" dest:@"116.44985,40.06308" style:@"0"];
+    [[dataHttpManager getInstance] letDoBusSearchWithStartposition:@"116.39846,39.89814" endposition:@"116.39022,39.89017" linetype:@"1"];
+//    [[dataHttpManager getInstance] letDoLineSearchWithOrig:@"116.3599,40.08882" dest:@"116.44985,40.06308" style:@"0"];
 }
 
 #pragma -mark
 
--(void)didGetLineSearchList:(NSArray *)lineList{
+-(void)didGetRoute:(NBRoute *)route{
     
 }
 
-- (void)didgetBusSearchList:(NSArray *)busList{
+- (void)didGetBusLines:(NSArray *)lineList{
     
 }
 

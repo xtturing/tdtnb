@@ -10,4 +10,17 @@
 
 @implementation NBStationEnd
 
+- (NBStationEnd *)initWithJsonDictionary:(NSDictionary*)dic{
+    if(self = [super init]){
+        _name=[dic getStringValueForKey:@"name" defaultValue:@""];
+        _uuid=[dic getStringValueForKey:@"uuid" defaultValue:@""];
+        _lonlat=[dic getStringValueForKey:@"lonlat" defaultValue:@""];
+    }
+    return self;
+}
+
++ (NBStationEnd *)endWithJsonDictionary:(NSDictionary*)dic{
+    return [[NBStationEnd alloc] initWithJsonDictionary:dic];
+}
+
 @end

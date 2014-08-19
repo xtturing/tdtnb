@@ -8,10 +8,14 @@
 
 #import <Foundation/Foundation.h>
 #import "NBSegment.h"
-
+#import "NSDictionaryAdditions.h"
 @interface NBLine : NSObject
 
 @property (nonatomic, strong) NSString *lineName;
-@property (nonatomic, strong) NSArray *segments;
+@property (nonatomic, strong) NSMutableArray *segments;
+
+- (NBLine *)initWithJsonDictionary:(NSDictionary*)dic;
+
++ (NBLine *)lineWithJsonDictionary:(NSDictionary*)dic;
 
 @end

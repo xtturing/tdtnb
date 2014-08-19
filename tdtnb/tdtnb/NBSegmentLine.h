@@ -7,7 +7,7 @@
 //
 
 #import <Foundation/Foundation.h>
-
+#import "NSDictionaryAdditions.h"
 @interface NBSegmentLine : NSObject
 
 @property (nonatomic, strong) NSString *segmentStationCount;
@@ -20,4 +20,8 @@
 @property (nonatomic, strong) NSString *lineName;
 @property (nonatomic, strong) NSString *byuuid;
 
+
+- (NBSegmentLine *)initWithJsonDictionary:(NSDictionary*)dic;
+
++ (NBSegmentLine *)segmentLineWithJsonDictionary:(NSDictionary*)dic;
 @end

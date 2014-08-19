@@ -10,4 +10,21 @@
 
 @implementation NBLine
 
+- (NBLine *)initWithJsonDictionary:(NSDictionary*)dic{
+    if (self = [super init]) {
+        _lineName=[dic getStringValueForKey:@"lineName" defaultValue:@""];
+        _segments = [[NSMutableArray alloc] initWithCapacity:0];
+        NSArray *arr = [dic objectForKey:@"segments"];
+        for (NSDictionary *item in arr) {
+            NBSegment *segment = [NBSegment segmentWithJsonDictionary:item];
+            [_segments addObject:segment];
+        }
+    }
+	return self;
+}
+
++ (NBLine *)lineWithJsonDictionary:(NSDictionary*)dic{
+     return [[NBLine alloc] initWithJsonDictionary:dic];
+}
+
 @end
